@@ -53,72 +53,170 @@ const AppContent = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader>
+      <div className="flex min-h-screen" style={{paddingTop: '10px'}}>
+        <Sidebar className="glassmorphism-sidebar" style={{background: 'linear-gradient(180deg, rgba(37, 25, 54, 0.85), rgba(20, 14, 32, 0.9))', borderRight: '1px solid hsl(248 22% 20%)'}}>
+          <SidebarHeader className="sidebar-header p-4">
             <div className="flex items-center justify-between w-full">
-              <span className="text-lg font-bold pl-2 pt-2 pb-2">Student ERP</span>
+              <span className="text-xl font-bold text-white drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
               {user && <UserProfile />}
             </div>
           </SidebarHeader>
-          <SidebarSeparator />
-          <SidebarContent>
+          <SidebarSeparator className="sidebar-separator" />
+          <SidebarContent className="sidebar-content">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/"} onClick={() => navigate("/")}> <Home /> Home </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/"} 
+                  onClick={() => navigate("/")}
+                  className={`sidebar-menu-button ${location.pathname === "/" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-home">
+                    <Home className="h-5 w-5" />
+                  </div>
+                  <span> Home </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/courses"} onClick={() => navigate("/courses")}> <BookOpen /> My Courses </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/courses"} 
+                  onClick={() => navigate("/courses")}
+                  className={`sidebar-menu-button ${location.pathname === "/courses" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-courses">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  <span> My Courses </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/attendance"} onClick={() => navigate("/attendance")}> <Calendar /> Attendance </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/attendance"} 
+                  onClick={() => navigate("/attendance")}
+                  className={`sidebar-menu-button ${location.pathname === "/attendance" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-attendance">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <span> Attendance </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/grades"} onClick={() => navigate("/grades")}> <FileText /> Grades </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/grades"} 
+                  onClick={() => navigate("/grades")}
+                  className={`sidebar-menu-button ${location.pathname === "/grades" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-grades">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <span> Grades </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/messages"} onClick={() => navigate("/messages")}> <MessageSquare /> Messages </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/messages"} 
+                  onClick={() => navigate("/messages")}
+                  className={`sidebar-menu-button ${location.pathname === "/messages" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-messages">
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
+                  <span> Messages </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={location.pathname === "/tuition"} onClick={() => navigate("/tuition")}> <CreditCard /> Pay Fees </SidebarMenuButton>
+                <SidebarMenuButton 
+                  isActive={location.pathname === "/tuition"} 
+                  onClick={() => navigate("/tuition")}
+                  className={`sidebar-menu-button ${location.pathname === "/tuition" ? 'active' : ''}`}
+                > 
+                  <div className="icon-container icon-fees">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <span> Pay Fees </span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               {user && (
                 <>
-                  <SidebarSeparator />
+                  <SidebarSeparator className="sidebar-separator" />
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={location.pathname === "/profile"} onClick={() => navigate("/profile")}> <User /> Profile </SidebarMenuButton>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/profile"} 
+                      onClick={() => navigate("/profile")}
+                      className={`sidebar-menu-button ${location.pathname === "/profile" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-profile">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <span> Profile </span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={location.pathname === "/settings"} onClick={() => navigate("/settings")}> <SettingsIcon /> Settings </SidebarMenuButton>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/settings"} 
+                      onClick={() => navigate("/settings")}
+                      className={`sidebar-menu-button ${location.pathname === "/settings" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-settings">
+                        <SettingsIcon className="h-5 w-5" />
+                      </div>
+                      <span> Settings </span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={location.pathname === "/ai-features"} onClick={() => navigate("/ai-features")}> <Sparkles /> AI Features </SidebarMenuButton>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/ai-features"} 
+                      onClick={() => navigate("/ai-features")}
+                      className={`sidebar-menu-button ${location.pathname === "/ai-features" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-ai-features">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <span> AI Features </span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={location.pathname === "/ai-projects"} onClick={() => navigate("/ai-projects")}> <Code /> AI Projects </SidebarMenuButton>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/ai-projects"} 
+                      onClick={() => navigate("/ai-projects")}
+                      className={`sidebar-menu-button ${location.pathname === "/ai-projects" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-ai-projects">
+                        <Code className="h-5 w-5" />
+                      </div>
+                      <span> AI Projects </span>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 </>
               )}
               {!user && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => navigate("/auth")}> <LogIn /> Sign In </SidebarMenuButton>
+                  <SidebarMenuButton 
+                    onClick={() => navigate("/auth")}
+                    className="sidebar-menu-button"
+                  > 
+                    <div className="icon-container icon-signin">
+                      <LogIn className="h-5 w-5" />
+                    </div>
+                    <span> Sign In </span>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <SidebarInset>
-          <div className="relative w-full h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 overflow-hidden">
-            {/* Background decorative elements */}
+        <div className="main-content-area dashboard-container" style={{marginLeft: '260px', width: 'calc(100% - 260px)', height: '100vh', paddingLeft: '0', paddingRight: '5px'}}>
+          <div className="relative w-full h-full overflow-hidden" style={{background: 'linear-gradient(180deg, hsl(248 24% 9%), hsl(248 22% 13%))'}}>
+            {/* Enhanced background decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-orange-200/20 rounded-full blur-3xl"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-green-200/10 to-blue-200/10 rounded-full blur-3xl"></div>
+              <div className="absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 30% 30%, hsl(265 85% 66% / .18), transparent 60%)'}}></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 20% 80%, hsl(280 85% 70% / .14), transparent 55%)'}}></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 50% 50%, hsl(200 65% 55% / .10), transparent 60%)'}}></div>
             </div>
             
             {/* Main content container */}
-            <div className="relative z-10 w-full h-full p-6">
-              <div className="max-w-7xl mx-auto h-full">
+            <div className="relative z-10 w-full h-full p-0">
+              <div className="w-full h-full rounded-xl shadow-2xl border border-[hsl(248_22%_20%)]/60 dashboard-content" style={{background: 'linear-gradient(180deg, hsl(248 20% 12% / .85), hsl(248 22% 10% / .85))', backdropFilter: 'blur(6px)'}}>
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={
@@ -141,7 +239,7 @@ const AppContent = () => {
               </div>
             </div>
           </div>
-        </SidebarInset>
+        </div>
         <AIChatbot />
       </div>
     </SidebarProvider>

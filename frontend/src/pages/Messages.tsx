@@ -341,59 +341,59 @@ const Messages = () => {
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-6">
-          {/* Message Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Message Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Inbox className="h-8 w-8 text-blue-500" />
-                  <div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Inbox className="h-8 w-8 text-blue-500" />
+              <div>
                     <p className="text-2xl font-bold">{filteredMessages.length}</p>
-                    <p className="text-sm text-muted-foreground">Total Messages</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-muted-foreground">Total Messages</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
             <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <MessageSquare className="h-8 w-8 text-green-500" />
-                  <div>
-                    <p className="text-2xl font-bold">{unreadCount}</p>
-                    <p className="text-sm text-muted-foreground">Unread</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <MessageSquare className="h-8 w-8 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">{unreadCount}</p>
+                <p className="text-sm text-muted-foreground">Unread</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
             <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
                   <Star className="h-8 w-8 text-purple-500" />
-                  <div>
+              <div>
                     <p className="text-2xl font-bold">{starredCount}</p>
                     <p className="text-sm text-muted-foreground">Starred</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
             <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Archive className="h-8 w-8 text-orange-500" />
-                  <div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Archive className="h-8 w-8 text-orange-500" />
+              <div>
                     <p className="text-2xl font-bold">{archivedCount}</p>
-                    <p className="text-sm text-muted-foreground">Archived</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-sm text-muted-foreground">Archived</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Messages List */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
+      {/* Messages List */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
                   <CardTitle className="capitalize">{activeTab}</CardTitle>
                   <CardDescription>
                     {filteredMessages.length} message{filteredMessages.length !== 1 ? 's' : ''} found
@@ -404,25 +404,25 @@ const Messages = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
                 {filteredMessages.map((message) => (
-                  <div key={message.id} className={`flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${message.status === 'unread' ? 'bg-blue-50 border-blue-200' : ''}`}>
+              <div key={message.id} className={`flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${message.status === 'unread' ? 'bg-blue-50 border-blue-200' : ''}`}>
                     <div className="flex-1 cursor-pointer" onClick={() => {
                       setSelectedMessage(message);
                       if (message.status === 'unread') markAsRead(message.id);
                     }}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{message.subject}</h3>
-                        <Badge className={getStatusColor(message.status)}>
-                          {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
-                        </Badge>
-                        <Badge className={getTypeColor(message.type)}>
-                          {message.type.charAt(0).toUpperCase() + message.type.slice(1)}
-                        </Badge>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{message.subject}</h3>
+                    <Badge className={getStatusColor(message.status)}>
+                      {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
+                    </Badge>
+                    <Badge className={getTypeColor(message.type)}>
+                      {message.type.charAt(0).toUpperCase() + message.type.slice(1)}
+                    </Badge>
                         <Badge className={getPriorityColor(message.priority)}>
                           {message.priority.charAt(0).toUpperCase() + message.priority.slice(1)}
                         </Badge>
@@ -432,18 +432,18 @@ const Messages = () => {
                             {message.attachments.length}
                           </Badge>
                         )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        From: {message.from} • To: {message.to}
-                      </p>
-                      <p className="text-sm text-muted-foreground mb-2">
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    From: {message.from} • To: {message.to}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">
                         {message.content.length > 150 ? `${message.content.substring(0, 150)}...` : message.content}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(message.date).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 ml-4">
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(message.date).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex gap-2 ml-4">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -457,46 +457,46 @@ const Messages = () => {
                         onClick={() => toggleStar(message.id)}
                       >
                         <Star className={`h-4 w-4 ${message.isStarred ? 'fill-yellow-400 text-yellow-600' : ''}`} />
-                      </Button>
+                  </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => toggleArchive(message.id)}
                       >
                         <Archive className="h-4 w-4" />
-                      </Button>
+                  </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => deleteMessage(message.id)}
                       >
                         <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* No Messages State */}
+      {/* No Messages State */}
           {filteredMessages.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Messages</h3>
-                <p className="text-muted-foreground mb-4">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Messages</h3>
+            <p className="text-muted-foreground mb-4">
                   {activeTab === 'inbox' ? 'You don\'t have any messages in your inbox.' :
                    activeTab === 'starred' ? 'You don\'t have any starred messages.' :
                    activeTab === 'archived' ? 'You don\'t have any archived messages.' :
                    'You haven\'t sent any messages yet.'}
-                </p>
+            </p>
                 {activeTab === 'inbox' && (
                   <Button onClick={() => setComposeOpen(true)}>Compose Message</Button>
                 )}
-              </CardContent>
-            </Card>
-          )}
+          </CardContent>
+        </Card>
+      )}
         </TabsContent>
       </Tabs>
 

@@ -63,6 +63,22 @@ const userSchema = new mongoose.Schema({
   avatarUrl: {
     type: String,
   },
+  passwordChangedAt: {
+    type: Date,
+  },
+  passwordChangeHistory: [{
+    changedAt: {
+      type: Date,
+      required: true,
+    },
+    ipAddress: {
+      type: String,
+      required: true,
+    },
+  }],
+  lastLoginIP: {
+    type: String,
+  },
 }, {
   timestamps: true,
 });
@@ -85,6 +101,24 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Add password change tracking
+userSchema.methods.trackPasswordChange = async function() {
+  this.passwordChangedAt = Date.now();
+  this.passwordChangeHistory = this.passwordChangeHistory || [];
+  
+  // Keep only last 5 password changes for security
+  if (this.passwordChangeHistory.length >= 5) {
+    this.passwordChangeHistory.shift();
+  }
+  
+  this.passwordChangeHistory.push({
+    changedAt: new Date(),
+    ipAddress: this.lastLoginIP || 'unknown'
+  });
+  
+  await this.save();
 };
 
 // Virtual for full name

@@ -356,47 +356,47 @@ const Grades = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Enhanced Stats Cards */}
+      {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg">
-                    <Calculator className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">{calculateGPA()}</p>
-                    <p className="text-sm text-gray-600 font-medium">Current GPA</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/50 border-0 shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg">
-                    <TrendingUp className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">{averageScore.toFixed(1)}%</p>
-                    <p className="text-sm text-gray-600 font-medium">Average Score</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/50 border-0 shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg">
-                    <BookOpen className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
+        <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg">
+                <Calculator className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-900">{calculateGPA()}</p>
+                <p className="text-sm text-gray-600 font-medium">Current GPA</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/50 border-0 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg">
+                <TrendingUp className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-gray-900">{averageScore.toFixed(1)}%</p>
+                <p className="text-sm text-gray-600 font-medium">Average Score</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/50 border-0 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg">
+                <BookOpen className="h-8 w-8 text-white" />
+              </div>
+              <div>
                     <p className="text-3xl font-bold text-gray-900">{filteredGrades.length}</p>
-                    <p className="text-sm text-gray-600 font-medium">Total Assignments</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-gray-600 font-medium">Total Assignments</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
             <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-orange-50/50 border-0 shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
@@ -410,7 +410,7 @@ const Grades = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+      </div>
 
           {/* Grade Distribution */}
           <Card>
@@ -446,39 +446,39 @@ const Grades = () => {
         </TabsContent>
 
         <TabsContent value="details" className="space-y-6">
-          <Card>
-            <CardHeader>
+      <Card>
+        <CardHeader>
               <CardTitle>Grade Details</CardTitle>
               <CardDescription>Detailed breakdown of all your assignments and assessments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
                 {filteredGrades.map((grade) => (
-                  <div key={grade.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{grade.courseCode} - {grade.courseName}</h3>
-                        <Badge className={getGradeColor(grade.grade)}>
-                          {grade.grade}
-                        </Badge>
+              <div key={grade.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{grade.courseCode} - {grade.courseName}</h3>
+                    <Badge className={getGradeColor(grade.grade)}>
+                      {grade.grade}
+                    </Badge>
                         <Badge variant="outline" className="text-xs">
                           {grade.category}
                         </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
                         {grade.assignment} • {grade.instructor} • Weight: {grade.weight}%
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(grade.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold">
-                        {grade.score}/{grade.maxScore}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {((grade.score / grade.maxScore) * 100).toFixed(1)}%
-                      </p>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(grade.date).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold">
+                    {grade.score}/{grade.maxScore}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {((grade.score / grade.maxScore) * 100).toFixed(1)}%
+                  </p>
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -488,12 +488,12 @@ const Grades = () => {
                         <Eye className="h-4 w-4 mr-1" />
                         Details
                       </Button>
-                    </div>
-                  </div>
-                ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
         </TabsContent>
 
         <TabsContent value="courses" className="space-y-6">
@@ -583,12 +583,12 @@ const Grades = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
+      <Card>
+        <CardHeader>
                 <CardTitle>Recommendations</CardTitle>
                 <CardDescription>Suggestions for improvement</CardDescription>
-              </CardHeader>
-              <CardContent>
+        </CardHeader>
+        <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                     <Trophy className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -603,19 +603,19 @@ const Grades = () => {
                     <div>
                       <p className="font-medium text-yellow-800">Areas for Improvement</p>
                       <p className="text-sm text-yellow-600">Consider additional practice in Calculus I homework assignments.</p>
-                    </div>
-                  </div>
+            </div>
+            </div>
                   
                   <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
                     <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
                     <div>
                       <p className="font-medium text-green-800">Next Steps</p>
                       <p className="text-sm text-green-600">Focus on upcoming final exams and maintain current study habits.</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
           </div>
         </TabsContent>
       </Tabs>

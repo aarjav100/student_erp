@@ -731,23 +731,23 @@ const Attendance = () => {
   // Enhanced course-wise attendance
   const courseAttendance = useMemo(() => {
     return filteredAttendance.reduce((acc, record) => {
-      if (!acc[record.courseCode]) {
-        acc[record.courseCode] = {
-          courseName: record.courseName,
-          total: 0,
-          present: 0,
-          absent: 0,
+    if (!acc[record.courseCode]) {
+      acc[record.courseCode] = {
+        courseName: record.courseName,
+        total: 0,
+        present: 0,
+        absent: 0,
           late: 0,
           excused: 0,
           instructor: record.instructor
-        };
-      }
-      acc[record.courseCode].total++;
+      };
+    }
+    acc[record.courseCode].total++;
       if (record.status === 'present') acc[record.courseCode].present++;
       else if (record.status === 'absent') acc[record.courseCode].absent++;
       else if (record.status === 'late') acc[record.courseCode].late++;
       else if (record.status === 'excused') acc[record.courseCode].excused++;
-      return acc;
+    return acc;
     }, {} as Record<string, { 
       total: number; present: number; absent: number; late: number; excused: number; 
       courseName: string; instructor: string 
@@ -1058,11 +1058,11 @@ const Attendance = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Enhanced Header */}
         <div className="text-center space-y-6">
-          <div className="flex justify-center">
+        <div className="flex justify-center">
             <div className="relative">
               <div className="p-6 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-full shadow-2xl shadow-blue-500/25">
                 <Calendar className="h-16 w-16 text-white" />
-              </div>
+        </div>
               <div className="absolute -top-2 -right-2 p-2 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full shadow-lg">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
@@ -1077,7 +1077,7 @@ const Attendance = () => {
               Track your academic journey with comprehensive attendance insights.
             </p>
           </div>
-        </div>
+      </div>
 
         {/* Enhanced Filters and Controls */}
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
@@ -1173,47 +1173,47 @@ const Attendance = () => {
               <Card className="border-0 shadow-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div>
+              <div>
                       <p className="text-3xl font-bold">{attendanceRate}%</p>
                       <p className="text-indigo-100">Overall Rate</p>
-                    </div>
+              </div>
                     <TrendingUp className="h-10 w-10 text-indigo-200" />
-                  </div>
+            </div>
                   <Progress value={parseFloat(attendanceRate)} className="mt-3 bg-white/20" />
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
               
               <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div>
+              <div>
                       <p className="text-3xl font-bold">{presentSessions}</p>
                       <p className="text-emerald-100">Present</p>
-                    </div>
+              </div>
                     <CheckCircle className="h-10 w-10 text-emerald-200" />
-                  </div>
-                </CardContent>
-              </Card>
+            </div>
+          </CardContent>
+        </Card>
               
               <Card className="border-0 shadow-xl bg-gradient-to-br from-red-500 to-pink-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div>
+              <div>
                       <p className="text-3xl font-bold">{absentSessions}</p>
                       <p className="text-red-100">Absent</p>
-                    </div>
+              </div>
                     <XCircle className="h-10 w-10 text-red-200" />
-                  </div>
-                </CardContent>
-              </Card>
+            </div>
+          </CardContent>
+        </Card>
               
               <Card className="border-0 shadow-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div>
+              <div>
                       <p className="text-3xl font-bold">{lateSessions}</p>
                       <p className="text-amber-100">Late</p>
-                    </div>
+              </div>
                     <Clock className="h-10 w-10 text-amber-200" />
                   </div>
                 </CardContent>
@@ -1227,10 +1227,10 @@ const Attendance = () => {
                       <p className="text-purple-100">Punctuality</p>
                     </div>
                     <Target className="h-10 w-10 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
             {/* Enhanced Course-wise Attendance */}
             <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
@@ -1240,14 +1240,14 @@ const Attendance = () => {
                   Course Performance
                 </CardTitle>
                 <CardDescription>Detailed breakdown of attendance by course</CardDescription>
-              </CardHeader>
+        </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  {Object.entries(courseAttendance).map(([courseCode, data]) => {
+          <div className="space-y-4">
+            {Object.entries(courseAttendance).map(([courseCode, data]) => {
                     const courseRate = ((data.present + data.late + data.excused) / data.total * 100).toFixed(1);
                     const coursePunctuality = (data.present / data.total * 100).toFixed(1);
                     
-                    return (
+              return (
                       <div key={courseCode} className="group p-6 border rounded-xl hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-white to-slate-50 hover:from-blue-50 hover:to-indigo-50">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -1255,10 +1255,10 @@ const Attendance = () => {
                               <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
                                 <BookOpen className="h-5 w-5 text-white" />
                               </div>
-                              <div>
+                  <div>
                                 <h3 className="text-lg font-bold text-slate-800">{courseCode}</h3>
                                 <p className="text-slate-600 font-medium">{data.courseName}</p>
-                              </div>
+                  </div>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
                               <User className="h-4 w-4" />
@@ -1319,20 +1319,20 @@ const Attendance = () => {
                                       Needs Improvement
                                     </>
                                   )}
-                                </Badge>
+                    </Badge>
                               </div>
                             </div>
                           </div>
                         </div>
                         <div className="mt-4">
                           <Progress value={parseFloat(courseRate)} className="h-2" />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
@@ -1376,16 +1376,16 @@ const Attendance = () => {
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
+        </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
+          <div className="space-y-4">
                   {filteredAttendance.map((record) => (
                     <div 
                       key={record.id} 
                       className={`group p-6 border rounded-xl transition-all duration-300 ${getStatusBackground(record.status)} hover:scale-[1.01]`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
                             <div className={`p-2 rounded-lg ${
                               record.status === 'present' ? 'bg-emerald-500' :
@@ -1436,9 +1436,9 @@ const Attendance = () => {
                         </div>
                         <div className="flex items-center gap-3 ml-6">
                           <Badge className={`${getStatusColor(record.status)} px-3 py-1 text-sm font-medium`}>
-                            {getStatusIcon(record.status)}
+                      {getStatusIcon(record.status)}
                             <span className="ml-1">{record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
-                          </Badge>
+                    </Badge>
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -1448,7 +1448,7 @@ const Attendance = () => {
                             <Eye className="h-4 w-4 mr-1" />
                             View Details
                           </Button>
-                        </div>
+                  </div>
                       </div>
                     </div>
                   ))}
@@ -1507,12 +1507,12 @@ const Attendance = () => {
                             <span>0%</span>
                             <span>100%</span>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
               {/* Performance Insights */}
               <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
@@ -1625,8 +1625,8 @@ const Attendance = () => {
                       <p>• Review attendance policy for each course</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
             </div>
           </TabsContent>
 
@@ -2100,4 +2100,4 @@ const Attendance = () => {
   );
 };
 
-export default Attendance;
+export default Attendance; 

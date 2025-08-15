@@ -355,4 +355,87 @@ router.post('/refresh', protect, async (req, res) => {
   }
 });
 
+// @desc    Change password
+// @route   POST /api/auth/change-password
+// @access  Private
+router.post('/change-password', [
+  protect,
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('New password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  body('confirmPassword').custom((value, { req }) => {
+    if (value !== req.body.newPassword) {
+      throw new Error('Password confirmation does not match password');
+    }
+    return true;
+  }),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        details: errors.array(),
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+    
+    // Get client IP address
+    const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+
+    // Get user with password
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Current password is incorrect',
+      });
+    }
+
+    // Check if new password is same as current
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be different from current password',
+      });
+    }
+
+    // Update password and track the change
+    user.password = newPassword;
+    user.lastLoginIP = clientIP;
+    await user.trackPasswordChange();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+      data: {
+        changedAt: user.passwordChangedAt,
+        securityNote: 'Password change has been logged for security purposes'
+      }
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error changing password',
+    });
+  }
+});
+
 export default router; 

@@ -60,20 +60,20 @@ const UserProfile = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-muted/50 transition-all duration-200 group">
-          <Avatar className="h-10 w-10 ring-2 ring-transparent group-hover:ring-primary/20 transition-all duration-200">
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/20 transition-all duration-200 group">
+          <Avatar className="h-10 w-10 ring-2 ring-white/30 group-hover:ring-white/50 transition-all duration-200 shadow-lg">
+            <AvatarFallback className="bg-gradient-to-br from-white/20 to-white/10 text-white font-semibold backdrop-blur-sm">
               {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-72 p-0" align="end" forceMount>
+      <DropdownMenuContent className="w-72 p-0 bg-white/95 backdrop-blur-md border border-white/20 shadow-2xl rounded-xl" align="end" forceMount>
         {/* User Info Header */}
-        <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 border-b">
+        <div className="p-4 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border-b border-white/20">
           <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-lg">
+            <Avatar className="h-12 w-12 ring-2 ring-white/50 shadow-lg">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-semibold text-lg shadow-lg">
                 {getInitials(user.firstName, user.lastName)}
               </AvatarFallback>
             </Avatar>
@@ -128,25 +128,25 @@ const UserProfile = () => {
         <div className="p-2">
           <DropdownMenuItem 
             onClick={() => navigate('/profile')}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer group"
           >
-            <User className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium">View Profile</span>
+            <User className="h-4 w-4 text-blue-600 group-hover:text-blue-700 transition-colors" />
+            <span className="text-sm font-medium group-hover:text-blue-700 transition-colors">View Profile</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => navigate('/settings')}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 cursor-pointer group"
           >
-            <Settings className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium">Settings</span>
+            <Settings className="h-4 w-4 text-green-600 group-hover:text-green-700 transition-colors" />
+            <span className="text-sm font-medium group-hover:text-green-700 transition-colors">Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="my-2" />
+          <DropdownMenuSeparator className="my-2 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           <DropdownMenuItem 
             onClick={signOut}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-600"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 cursor-pointer text-red-600 group"
           >
-            <LogOut className="h-4 w-4" />
-            <span className="text-sm font-medium">Sign out</span>
+            <LogOut className="h-4 w-4 group-hover:text-red-700 transition-colors" />
+            <span className="text-sm font-medium group-hover:text-red-700 transition-colors">Sign out</span>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

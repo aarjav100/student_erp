@@ -276,120 +276,120 @@ Thank you for your payment!
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Fee Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <DollarSign className="h-8 w-8 text-blue-500" />
-                  <div>
-                    <p className="text-2xl font-bold">${totalAmount.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Total Fees</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-8 w-8 text-green-500" />
-                  <div>
-                    <p className="text-2xl font-bold">${totalPaid.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Paid</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <AlertCircle className="h-8 w-8 text-yellow-500" />
-                  <div>
-                    <p className="text-2xl font-bold">${totalPending.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Pending</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <AlertCircle className="h-8 w-8 text-red-500" />
-                  <div>
-                    <p className="text-2xl font-bold">{overdueFees.length}</p>
-                    <p className="text-sm text-muted-foreground">Overdue</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Fee Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="h-8 w-8 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold">${totalAmount.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Total Fees</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-8 w-8 text-green-500" />
+              <div>
+                <p className="text-2xl font-bold">${totalPaid.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Paid</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-8 w-8 text-yellow-500" />
+              <div>
+                <p className="text-2xl font-bold">${totalPending.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Pending</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+              <div>
+                <p className="text-2xl font-bold">{overdueFees.length}</p>
+                <p className="text-sm text-muted-foreground">Overdue</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Overdue Alerts */}
-          {overdueFees.length > 0 && (
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-800 flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  Overdue Fees
-                </CardTitle>
-                <CardDescription className="text-red-700">
-                  You have {overdueFees.length} overdue fee(s). Please pay them immediately to avoid penalties.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {overdueFees.map((fee) => (
-                    <div key={fee.id} className="flex justify-between items-center p-3 bg-red-100 rounded-lg">
-                      <div>
-                        <p className="font-medium">{fee.feeType}</p>
-                        <p className="text-sm text-red-700">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-red-800">${fee.amount}</p>
+      {/* Overdue Alerts */}
+      {overdueFees.length > 0 && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-800 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Overdue Fees
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              You have {overdueFees.length} overdue fee(s). Please pay them immediately to avoid penalties.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {overdueFees.map((fee) => (
+                <div key={fee.id} className="flex justify-between items-center p-3 bg-red-100 rounded-lg">
+                  <div>
+                    <p className="font-medium">{fee.feeType}</p>
+                    <p className="text-sm text-red-700">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-red-800">${fee.amount}</p>
                         <Button size="sm" className="mt-1" onClick={() => handlePayment(fee)}>
                           Pay Now
                         </Button>
-                      </div>
-                    </div>
-                  ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Fees List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Fee Details</CardTitle>
-              <CardDescription>Complete breakdown of your fees and payments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {fees.map((fee) => (
-                  <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{fee.feeType}</h3>
-                        <Badge className={getStatusColor(fee.status)}>
-                          {getStatusIcon(fee.status)}
-                          {fee.status.charAt(0).toUpperCase() + fee.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {fee.description}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Due: {new Date(fee.dueDate).toLocaleDateString()}
-                        {fee.paymentMethod && ` • Paid via ${fee.paymentMethod}`}
+      {/* Fees List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Fee Details</CardTitle>
+          <CardDescription>Complete breakdown of your fees and payments</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {fees.map((fee) => (
+              <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{fee.feeType}</h3>
+                    <Badge className={getStatusColor(fee.status)}>
+                      {getStatusIcon(fee.status)}
+                      {fee.status.charAt(0).toUpperCase() + fee.status.slice(1)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    {fee.description}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Due: {new Date(fee.dueDate).toLocaleDateString()}
+                    {fee.paymentMethod && ` • Paid via ${fee.paymentMethod}`}
                         {fee.receiptNumber && ` • Receipt: ${fee.receiptNumber}`}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold">
-                        ${fee.paidAmount.toLocaleString()}/{fee.amount.toLocaleString()}
-                      </p>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold">
+                    ${fee.paidAmount.toLocaleString()}/{fee.amount.toLocaleString()}
+                  </p>
                       <div className="flex gap-2 mt-1">
-                        {fee.status === 'pending' && (
+                  {fee.status === 'pending' && (
                           <Button size="sm" onClick={() => handlePayment(fee)}>
                             Pay Now
                           </Button>
@@ -415,12 +415,12 @@ Thank you for your payment!
                           </Button>
                         )}
                       </div>
-                    </div>
-                  </div>
-                ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-6">
@@ -520,35 +520,35 @@ Thank you for your payment!
         </TabsContent>
 
         <TabsContent value="methods" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>Your saved payment methods for quick transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">Credit Card</h4>
-                    <Badge variant="outline">Default</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">**** **** **** 1234</p>
-                  <p className="text-sm text-muted-foreground">Expires: 12/25</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Methods</CardTitle>
+          <CardDescription>Your saved payment methods for quick transactions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium">Credit Card</h4>
+                <Badge variant="outline">Default</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">**** **** **** 1234</p>
+              <p className="text-sm text-muted-foreground">Expires: 12/25</p>
                   <div className="flex gap-2 mt-2">
                     <Button variant="outline" size="sm">Edit</Button>
                     <Button variant="outline" size="sm">Remove</Button>
                   </div>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">Bank Transfer</h4>
-                    <Button variant="outline" size="sm">Add New</Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">No bank account added</p>
-                </div>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium">Bank Transfer</h4>
+                <Button variant="outline" size="sm">Add New</Button>
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-sm text-muted-foreground">No bank account added</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
         </TabsContent>
       </Tabs>
 
