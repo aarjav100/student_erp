@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreditCard, DollarSign, AlertCircle, CheckCircle, Printer, Download, Eye, Calendar, User, Receipt, Lock, Shield, Clock } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { AdminOnly, RoleBasedAccess } from '@/components/RoleBasedAccess';
 
 const Fees = () => {
   const { user } = useAuth();
@@ -22,6 +25,38 @@ const Fees = () => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [paymentReceipt, setPaymentReceipt] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize theme on component mount - default to light mode
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   // Mock fees data with more details
   const [fees, setFees] = useState([
@@ -111,6 +146,11 @@ const Fees = () => {
   const overdueFees = fees.filter(fee => new Date(fee.dueDate) < new Date() && fee.status !== 'paid');
 
   const handlePayment = async (fee) => {
+    // Only allow students to make payments, or admins to process payments for others
+    if (user?.role === 'teacher') {
+      alert('Teachers cannot process payments. Please contact an administrator.');
+      return;
+    }
     setSelectedFee(fee);
     setCardholderName(`${user?.firstName} ${user?.lastName}`);
   };
@@ -161,6 +201,11 @@ const Fees = () => {
   };
 
   const printReceipt = () => {
+    // Only allow students to print their own receipts, or admins to print any receipt
+    if (user?.role === 'teacher') {
+      alert('Teachers cannot print receipts. Please contact an administrator.');
+      return;
+    }
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
@@ -224,6 +269,11 @@ const Fees = () => {
   };
 
   const downloadReceipt = () => {
+    // Only allow students to download their own receipts, or admins to download any receipt
+    if (user?.role === 'teacher') {
+      alert('Teachers cannot download receipts. Please contact an administrator.');
+      return;
+    }
     const receiptText = `
 UNIVERSITY ERP SYSTEM - PAYMENT RECEIPT
 
@@ -266,6 +316,42 @@ Thank you for your payment!
           Welcome back, {user?.firstName}! Here's your fee status and payment information.
         </p>
       </div>
+
+      {/* Role-based Access Control */}
+      <RoleBasedAccess allowedRoles={['student', 'teacher', 'admin']} showAlert={true}>
+        {/* Content for all authenticated users */}
+        <div className="space-y-4">
+          {/* Student View - Read Only */}
+          {user?.role === 'student' && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <Eye className="h-4 w-4" />
+              <AlertDescription>
+                You can view your fee information and make payments. Fee structure changes require administrator approval.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Teacher View - Limited Access */}
+          {user?.role === 'teacher' && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                You can view fee information but cannot modify fee structures or process payments.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Admin View - Full Access */}
+          {user?.role === 'admin' && (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                You have full administrative access to manage fee structures, process payments, and view all student fee records.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      </RoleBasedAccess>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -346,9 +432,15 @@ Thank you for your payment!
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-red-800">${fee.amount}</p>
-                        <Button size="sm" className="mt-1" onClick={() => handlePayment(fee)}>
-                          Pay Now
-                        </Button>
+                        <AdminOnly fallback={
+                          <Button size="sm" className="mt-1" disabled>
+                            Contact Admin
+                          </Button>
+                        } showAlert={false}>
+                          <Button size="sm" className="mt-1" onClick={() => handlePayment(fee)}>
+                            Pay Now
+                          </Button>
+                        </AdminOnly>
                   </div>
                 </div>
               ))}
@@ -390,9 +482,15 @@ Thank you for your payment!
                   </p>
                       <div className="flex gap-2 mt-1">
                   {fee.status === 'pending' && (
-                          <Button size="sm" onClick={() => handlePayment(fee)}>
-                            Pay Now
-                          </Button>
+                                              <AdminOnly fallback={
+                      <Button size="sm" disabled>
+                        Contact Admin
+                      </Button>
+                    } showAlert={false}>
+                      <Button size="sm" onClick={() => handlePayment(fee)}>
+                        Pay Now
+                      </Button>
+                    </AdminOnly>
                         )}
                         {fee.status === 'paid' && fee.receiptNumber && (
                           <Button size="sm" variant="outline" onClick={() => {
@@ -616,13 +714,22 @@ Thank you for your payment!
             )}
 
             <div className="flex gap-2">
-              <Button 
-                onClick={processPayment} 
-                disabled={isProcessing}
-                className="flex-1"
-              >
-                {isProcessing ? 'Processing...' : `Pay $${selectedFee?.amount}`}
-              </Button>
+              <AdminOnly fallback={
+                <Button 
+                  disabled
+                  className="flex-1"
+                >
+                  Contact Administrator
+                </Button>
+              } showAlert={false}>
+                <Button 
+                  onClick={processPayment} 
+                  disabled={isProcessing}
+                  className="flex-1"
+                >
+                  {isProcessing ? 'Processing...' : `Pay $${selectedFee?.amount}`}
+                </Button>
+              </AdminOnly>
               <Button variant="outline" onClick={() => setSelectedFee(null)}>
                 Cancel
               </Button>
@@ -682,20 +789,50 @@ Thank you for your payment!
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={printReceipt} className="flex-1">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print Receipt
-                </Button>
-                <Button onClick={downloadReceipt} variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
+              <AdminOnly fallback={
+                <div className="flex gap-2">
+                  <Button disabled className="flex-1">
+                    <Printer className="h-4 w-4 mr-2" />
+                    Contact Admin
+                  </Button>
+                  <Button disabled variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Contact Admin
+                  </Button>
+                </div>
+              } showAlert={false}>
+                <div className="flex gap-2">
+                  <Button onClick={printReceipt} className="flex-1">
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Receipt
+                  </Button>
+                  <Button onClick={downloadReceipt} variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </AdminOnly>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
+      </div>
     </div>
   );
 };

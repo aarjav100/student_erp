@@ -77,6 +77,30 @@ const Settings = () => {
     feedback: [],
     color: 'bg-gray-200'
   });
+  const [darkMode, setDarkMode] = useState(true);
+
+  // Initialize theme on component mount
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+    if (isDark) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
+  };
 
   // Password strength checker
   const checkPasswordStrength = (password: string) => {
@@ -664,6 +688,23 @@ const Settings = () => {
             <Save className="h-4 w-4 mr-2" />
             {loading ? 'Saving...' : 'Save All Settings'}
           </Button>
+        </div>
+      </div>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
         </div>
       </div>
     </div>

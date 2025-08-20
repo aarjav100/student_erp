@@ -18,6 +18,7 @@ import {
   TrendingUp, Award, Target, BookmarkPlus, GraduationCap, Zap, Heart, ThumbsUp
 } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import { Switch } from '@/components/ui/switch';
 
 const Courses = () => {
   const { user } = useAuth();
@@ -40,6 +41,38 @@ const Courses = () => {
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showAvailableCoursesDialog, setShowAvailableCoursesDialog] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize theme on component mount - default to light mode
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   // Enhanced course data with more realistic details
   const [courses, setCourses] = useState([
@@ -797,7 +830,7 @@ const Courses = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="w-full max-w-md">
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+          <Card className="border-0 shadow-2xl bg-slate-50/80 backdrop-blur-sm">
             <CardContent className="p-12 text-center">
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full opacity-20 animate-pulse" />
@@ -849,7 +882,7 @@ const Courses = () => {
           <div className="flex flex-wrap justify-center gap-3">
             <Button 
               variant="outline" 
-              className="bg-white/80 hover:bg-white border-blue-200 text-blue-700"
+              className="bg-slate-100/80 hover:bg-slate-200 border-blue-200 text-blue-700"
               onClick={() => setShowAvailableCoursesDialog(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -857,14 +890,14 @@ const Courses = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="bg-white/80 hover:bg-white border-green-200 text-green-700"
+              className="bg-slate-100/80 hover:bg-slate-200 border-green-200 text-green-700"
             >
               <Calendar className="h-4 w-4 mr-2" />
               View Schedule
             </Button>
             <Button 
               variant="outline" 
-              className="bg-white/80 hover:bg-white border-purple-200 text-purple-700"
+              className="bg-slate-100/80 hover:bg-slate-200 border-purple-200 text-purple-700"
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Grade Report
@@ -873,7 +906,7 @@ const Courses = () => {
         </div>
 
         {/* Enhanced Search and Filter */}
-        <Card className="mb-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+        <Card className="mb-8 border-0 shadow-lg bg-slate-50/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
@@ -882,7 +915,7 @@ const Courses = () => {
                   placeholder="Search courses, instructors, categories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 border-0 bg-gray-50 focus:bg-white transition-colors duration-200"
+                  className="pl-12 h-12 border-0 bg-gray-50 focus:bg-slate-100 transition-colors duration-200"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
@@ -1632,6 +1665,23 @@ const Courses = () => {
             )}
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
       </div>
     </div>
   );

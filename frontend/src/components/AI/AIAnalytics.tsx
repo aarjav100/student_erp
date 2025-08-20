@@ -249,7 +249,7 @@ const AIAnalytics = () => {
         <CardContent>
           <div className="space-y-4">
             {performanceData.map((subject) => (
-              <div key={subject.subject} className="p-4 border rounded-lg bg-white">
+              <div key={subject.subject} className="p-4 border rounded-lg bg-slate-50">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <h4 className="font-semibold text-gray-900">{subject.subject}</h4>
@@ -290,7 +290,7 @@ const AIAnalytics = () => {
           <div className="grid grid-cols-7 gap-2">
             {learningPatterns.map((pattern) => (
               <div key={pattern.dayOfWeek} className="text-center space-y-2">
-                <div className="p-2 bg-white rounded-lg border">
+                <div className="p-2 bg-slate-100 rounded-lg border">
                   <p className="text-xs font-medium text-gray-600">{pattern.dayOfWeek}</p>
                   <p className="text-lg font-bold text-gray-900">{pattern.studyHours}h</p>
                   <div className="space-y-1">
@@ -323,7 +323,7 @@ const AIAnalytics = () => {
         <CardContent>
           <div className="space-y-4">
             {insights.map((insight) => (
-              <div key={insight.id} className="p-4 border rounded-lg bg-white">
+              <div key={insight.id} className="p-4 border rounded-lg bg-slate-50">
                 <div className="flex items-start space-x-3">
                   {getInsightIcon(insight.type)}
                   <div className="flex-1">

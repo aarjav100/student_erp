@@ -49,7 +49,7 @@ import {
   ZoomOut,
   Crop
 } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
@@ -63,7 +63,7 @@ const Profile = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [profileImageOpen, setProfileImageOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(user?.profileImage || null);
+  const [profileImage, setProfileImage] = useState<string | null>((user as any)?.profileImage || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [cropData, setCropData] = useState({ x: 0, y: 0, width: 200, height: 200 });
@@ -78,10 +78,10 @@ const Profile = () => {
     program: user?.program || '',
     yearLevel: user?.yearLevel || 1,
     studentId: user?.studentId || '',
-    address: user?.address || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    emergencyContact: user?.emergencyContact || '',
-    bio: user?.bio || ''
+    address: (user as any)?.address || '',
+    dateOfBirth: (user as any)?.dateOfBirth || '',
+    emergencyContact: (user as any)?.emergencyContact || '',
+    bio: (user as any)?.bio || ''
   });
 
   const [securitySettings, setSecuritySettings] = useState({
@@ -99,6 +99,38 @@ const Profile = () => {
     dateFormat: 'MM/DD/YYYY',
     currency: 'USD'
   });
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize theme on component mount - default to light mode
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -191,7 +223,7 @@ const Profile = () => {
     }));
   };
 
-  const handleSecurityChange = (field: string, value: boolean | string) => {
+  const handleSecurityChange = (field: string, value: boolean | string | number) => {
     setSecuritySettings(prev => ({
       ...prev,
       [field]: value
@@ -275,15 +307,17 @@ const Profile = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/users/change-password', {
-        method: 'PUT',
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
+          newPassword: passwordData.newPassword,
+          confirmPassword: passwordData.confirmPassword
         })
       });
 
@@ -522,7 +556,7 @@ const Profile = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-3 p-3 bg-white rounded-lg shadow-sm">
+              <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg shadow-sm">
                 <Mail className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{user?.email}</p>
@@ -530,7 +564,7 @@ const Profile = () => {
                 </div>
               </div>
               {user?.phone && (
-                <div className="flex items-center space-x-3 p-3 bg-white rounded-lg shadow-sm">
+                <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg shadow-sm">
                   <Phone className="h-4 w-4 text-green-600" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{user.phone}</p>
@@ -539,7 +573,7 @@ const Profile = () => {
                 </div>
               )}
               {user?.studentId && (
-                <div className="flex items-center space-x-3 p-3 bg-white rounded-lg shadow-sm">
+                <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg shadow-sm">
                   <BookOpen className="h-4 w-4 text-purple-600" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{user.studentId}</p>
@@ -615,7 +649,7 @@ const Profile = () => {
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -625,7 +659,7 @@ const Profile = () => {
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -636,7 +670,7 @@ const Profile = () => {
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -646,7 +680,7 @@ const Profile = () => {
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -656,7 +690,7 @@ const Profile = () => {
                         value={formData.studentId}
                         onChange={(e) => handleInputChange('studentId', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -669,7 +703,7 @@ const Profile = () => {
                         value={formData.yearLevel}
                         onChange={(e) => handleInputChange('yearLevel', parseInt(e.target.value))}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -680,7 +714,7 @@ const Profile = () => {
                         value={formData.dateOfBirth}
                         onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                     <div className="space-y-2">
@@ -690,7 +724,7 @@ const Profile = () => {
                         value={formData.emergencyContact}
                         onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white"
+                        className="bg-slate-50"
                       />
                     </div>
                   </div>
@@ -701,7 +735,7 @@ const Profile = () => {
                       value={formData.program}
                       onChange={(e) => handleInputChange('program', e.target.value)}
                       disabled={!isEditing}
-                      className="bg-white"
+                      className="bg-slate-50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -711,7 +745,7 @@ const Profile = () => {
                       value={formData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
                       disabled={!isEditing}
-                      className="bg-white"
+                      className="bg-slate-50"
                       rows={3}
                     />
                   </div>
@@ -722,7 +756,7 @@ const Profile = () => {
                       value={formData.bio}
                       onChange={(e) => handleInputChange('bio', e.target.value)}
                       disabled={!isEditing}
-                      className="bg-white"
+                      className="bg-slate-50"
                       rows={4}
                       placeholder="Tell us about yourself..."
                     />
@@ -1186,6 +1220,23 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
+      </div>
     </div>
   );
 };

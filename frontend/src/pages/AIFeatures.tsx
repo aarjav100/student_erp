@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,31 @@ const AIFeatures = () => {
     personalizedContent: true,
     peerMatching: false
   });
+
+  const [darkMode, setDarkMode] = useState(true);
+
+  // Initialize theme on component mount
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+    if (isDark) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
+  };
 
   const aiFeatures = [
     {
@@ -318,15 +343,15 @@ const AIFeatures = () => {
                 to help you study more effectively.
               </p>
               <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-blue-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-blue-900 mb-2">Recommended Study Schedule</h4>
                   <p className="text-blue-800">Study Mathematics in the morning when your focus is highest.</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-green-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-green-900 mb-2">Learning Technique</h4>
                   <p className="text-green-800">Use active recall methods for Science topics to improve retention.</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-purple-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-purple-900 mb-2">Resource Recommendation</h4>
                   <p className="text-purple-800">Check out Khan Academy videos for Physics concepts.</p>
                 </div>
@@ -356,11 +381,11 @@ const AIFeatures = () => {
                 and offers practice questions to test your understanding.
               </p>
               <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-indigo-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-indigo-900 mb-2">Current Session</h4>
                   <p className="text-indigo-800">Mathematics: Solving Quadratic Equations</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-green-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-green-900 mb-2">Practice Question</h4>
                   <p className="text-green-800">What is the value of x in the equation 2x² + 5x - 3 = 0?</p>
                 </div>
@@ -390,15 +415,15 @@ const AIFeatures = () => {
                 identifies patterns, and predicts future outcomes.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg bg-blue-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-blue-900 mb-2">Performance Trend</h4>
                   <p className="text-blue-800">Mathematics: +7% improvement</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-green-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-green-900 mb-2">Study Efficiency</h4>
                   <p className="text-green-800">84% efficiency score</p>
                 </div>
-                <div className="p-4 border rounded-lg bg-purple-50">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h4 className="font-semibold text-purple-900 mb-2">Predicted Score</h4>
                   <p className="text-purple-800">Next month: 88%</p>
                 </div>
@@ -450,7 +475,7 @@ const AIFeatures = () => {
                 <div className="space-y-4">
                   <h4 className="font-semibold">Optimized Schedule</h4>
                   <div className="space-y-3">
-                    <div className="p-3 border rounded-lg bg-blue-50">
+                    <div className="p-3 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-blue-900">Mathematics</p>
@@ -459,7 +484,7 @@ const AIFeatures = () => {
                         <Badge className="bg-blue-100 text-blue-800">High Focus</Badge>
                       </div>
                     </div>
-                    <div className="p-3 border rounded-lg bg-green-50">
+                    <div className="p-3 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-green-900">Science</p>
@@ -468,7 +493,7 @@ const AIFeatures = () => {
                         <Badge className="bg-green-100 text-green-800">Medium Focus</Badge>
                       </div>
                     </div>
-                    <div className="p-3 border rounded-lg bg-purple-50">
+                    <div className="p-3 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-purple-900">English</p>
@@ -542,7 +567,7 @@ const AIFeatures = () => {
                 <div className="space-y-4">
                   <h4 className="font-semibold">Generated Content</h4>
                   <div className="space-y-3">
-                    <div className="p-4 border rounded-lg bg-white">
+                    <div className="p-4 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between mb-2">
                         <h5 className="font-medium">Calculus Practice Question</h5>
                         <Badge variant="outline">Medium</Badge>
@@ -560,7 +585,7 @@ const AIFeatures = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="p-4 border rounded-lg bg-white">
+                    <div className="p-4 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between mb-2">
                         <h5 className="font-medium">Physics Summary</h5>
                         <Badge variant="outline">Easy</Badge>
@@ -653,7 +678,7 @@ const AIFeatures = () => {
                 <div className="space-y-4">
                   <h4 className="font-semibold">Recommended Study Partners</h4>
                   <div className="space-y-3">
-                    <div className="p-4 border rounded-lg bg-white">
+                    <div className="p-4 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <h5 className="font-medium">Sarah Johnson</h5>
@@ -683,7 +708,7 @@ const AIFeatures = () => {
                         </Button>
                       </div>
                     </div>
-                    <div className="p-4 border rounded-lg bg-white">
+                    <div className="p-4 border rounded-lg bg-slate-50">
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <h5 className="font-medium">Mike Chen</h5>
@@ -1021,6 +1046,23 @@ const AIFeatures = () => {
           </Card>
         </div>
       )}
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
+      </div>
     </div>
   );
 };

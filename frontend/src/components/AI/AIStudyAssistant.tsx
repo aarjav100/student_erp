@@ -235,7 +235,7 @@ const AIStudyAssistant = () => {
           <CardContent>
             <div className="space-y-4">
               {recommendations.map((recommendation) => (
-                <div key={recommendation.id} className="p-4 border border-gray-200 rounded-lg bg-white">
+                <div key={recommendation.id} className="p-4 border border-gray-200 rounded-lg bg-slate-50">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       {getTypeIcon(recommendation.type)}

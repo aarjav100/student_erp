@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   GraduationCap, 
   Calendar, 
@@ -24,12 +25,23 @@ import { useState, useEffect } from 'react';
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Initialize theme on component mount
+  // Initialize theme on component mount - default to light mode
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setDarkMode(isDark);
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }, []);
 
   // Function to toggle theme
@@ -37,8 +49,12 @@ const Index = () => {
     setDarkMode(checked);
     if (checked) {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   };
 
@@ -71,49 +87,64 @@ const Index = () => {
   return (
     <div className="h-full p-6 space-y-6 overflow-y-auto">
       {/* Welcome Banner */}
-      <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-0 shadow-lg">
-        <CardContent className="p-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Welcome back, {user?.firstName}!
-          </h1>
-          <p className="text-xl text-white/80 mb-6">
-            Today is {getCurrentDate()}
-          </p>
-          <Button 
-            className="bg-white text-blue-600 hover:bg-white/90 px-8 py-3 rounded-full font-semibold"
-            onClick={() => navigate('/profile')}
-          >
-            View Profile
-          </Button>
+      <Card className="welcome-banner border-0 shadow-lg">
+        <CardContent className="p-8">
+          <div className="flex items-center space-x-6">
+            {/* Profile Picture */}
+            <div className="flex-shrink-0">
+              <Avatar className="h-24 w-24 ring-4 ring-white/20 shadow-lg">
+                <AvatarImage src={user?.profilePicture} alt={`${user?.firstName} ${user?.lastName}`} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-bold">
+                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            
+            {/* Welcome Text and Button */}
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-white mb-2">
+                Welcome back, {user?.firstName}!
+              </h1>
+              <p className="text-xl text-white/80 mb-6">
+                Today is {getCurrentDate()}
+              </p>
+              <Button 
+                className="bg-white text-blue-600 hover:bg-white/90 px-8 py-3 rounded-full font-semibold"
+                onClick={() => navigate('/profile')}
+              >
+                View Profile
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Quick Stats */}
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Quick Stats</h2>
+        <h2 className="text-2xl font-bold mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-card/80 border-border/50">
+          <Card className="stats-card">
             <CardContent className="p-6 text-center">
               <p className="text-sm text-muted-foreground mb-2">Attendance %</p>
-              <p className="text-3xl font-bold text-white">92%</p>
+              <p className="text-3xl font-bold text-primary">92%</p>
             </CardContent>
           </Card>
-          <Card className="bg-card/80 border-border/50">
+          <Card className="stats-card">
             <CardContent className="p-6 text-center">
               <p className="text-sm text-muted-foreground mb-2">GPA</p>
-              <p className="text-3xl font-bold text-white">3.8</p>
+              <p className="text-3xl font-bold text-primary">3.8</p>
             </CardContent>
           </Card>
-          <Card className="bg-card/80 border-border/50">
+          <Card className="stats-card">
             <CardContent className="p-6 text-center">
               <p className="text-sm text-muted-foreground mb-2">Upcoming Classes</p>
-              <p className="text-3xl font-bold text-white">2</p>
+              <p className="text-3xl font-bold text-primary">2</p>
             </CardContent>
           </Card>
-          <Card className="bg-card/80 border-border/50">
+          <Card className="stats-card">
             <CardContent className="p-6 text-center">
               <p className="text-sm text-muted-foreground mb-2">Pending Assignments</p>
-              <p className="text-3xl font-bold text-white">3</p>
+              <p className="text-3xl font-bold text-primary">3</p>
             </CardContent>
           </Card>
         </div>
@@ -121,30 +152,30 @@ const Index = () => {
 
       {/* Timetable */}
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Timetable</h2>
-        <Card className="bg-card/80 border-border/50">
+        <h2 className="text-2xl font-bold mb-4">Timetable</h2>
+        <Card className="timetable-card">
           <CardContent className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="text-left p-3 text-white font-semibold">Time</th>
-                    <th className="text-left p-3 text-white font-semibold">Monday</th>
-                    <th className="text-left p-3 text-white font-semibold">Tuesday</th>
-                    <th className="text-left p-3 text-white font-semibold">Wednesday</th>
-                    <th className="text-left p-3 text-white font-semibold">Thursday</th>
-                    <th className="text-left p-3 text-white font-semibold">Friday</th>
+                    <th className="text-left p-3 font-semibold">Time</th>
+                    <th className="text-left p-3 font-semibold">Monday</th>
+                    <th className="text-left p-3 font-semibold">Tuesday</th>
+                    <th className="text-left p-3 font-semibold">Wednesday</th>
+                    <th className="text-left p-3 font-semibold">Thursday</th>
+                    <th className="text-left p-3 font-semibold">Friday</th>
                   </tr>
                 </thead>
                 <tbody>
                   {timetableData.map((row, index) => (
                     <tr key={index} className="border-b border-border/30">
-                      <td className="p-3 text-white font-medium">{row.time}</td>
-                      <td className="p-3 text-white">{row.monday}</td>
-                      <td className="p-3 text-white">{row.tuesday}</td>
-                      <td className="p-3 text-white">{row.wednesday}</td>
-                      <td className="p-3 text-white">{row.thursday}</td>
-                      <td className="p-3 text-white">{row.friday}</td>
+                      <td className="p-3 font-medium">{row.time}</td>
+                      <td className="p-3">{row.monday}</td>
+                      <td className="p-3">{row.tuesday}</td>
+                      <td className="p-3">{row.wednesday}</td>
+                      <td className="p-3">{row.thursday}</td>
+                      <td className="p-3">{row.friday}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -155,7 +186,7 @@ const Index = () => {
       </div>
 
       {/* Analytics */}
-      <div>
+                  <div>
         <h2 className="text-2xl font-bold text-white mb-4">Analytics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Performance Trend */}
@@ -164,14 +195,14 @@ const Index = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white">Performance Trend</h3>
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30">+12%</Badge>
-              </div>
+                  </div>
               <p className="text-sm text-muted-foreground mb-4">Last 30 Days</p>
               <div className="flex items-end space-x-2 h-24">
                 <div className="flex-1 bg-primary/30 rounded-t" style={{height: '60%'}}></div>
                 <div className="flex-1 bg-primary/30 rounded-t" style={{height: '80%'}}></div>
                 <div className="flex-1 bg-primary/30 rounded-t" style={{height: '45%'}}></div>
                 <div className="flex-1 bg-primary/30 rounded-t" style={{height: '90%'}}></div>
-              </div>
+                  </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-2">
                 <span>Week 1</span>
                 <span>Week 2</span>
@@ -187,14 +218,14 @@ const Index = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white">Attendance Trend</h3>
                 <Badge className="bg-red-500/20 text-red-400 border-red-500/30">-5%</Badge>
-              </div>
+                    </div>
               <p className="text-sm text-muted-foreground mb-4">Last 30 Days</p>
               <div className="flex items-end space-x-2 h-24">
                 <div className="flex-1 bg-muted rounded-t" style={{height: '85%'}}></div>
                 <div className="flex-1 bg-muted rounded-t" style={{height: '90%'}}></div>
                 <div className="flex-1 bg-muted rounded-t" style={{height: '75%'}}></div>
                 <div className="flex-1 bg-muted rounded-t" style={{height: '80%'}}></div>
-              </div>
+                    </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-2">
                 <span>Week 1</span>
                 <span>Week 2</span>
@@ -204,15 +235,15 @@ const Index = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
 
       {/* Announcements */}
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Announcements</h2>
-        <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-0">
+        <h2 className="text-2xl font-bold mb-4">Announcements</h2>
+        <Card className="announcements-card border-0">
           <CardContent className="p-6">
-            <h3 className="text-xl font-bold text-white mb-2">Important Exam Dates</h3>
-            <p className="text-white/80">
+            <h3 className="text-xl font-bold mb-2">Important Exam Dates</h3>
+            <p className="text-muted-foreground">
               Midterm exams are scheduled for the week of Aug. 12th. Please check the detailed schedule on the portal.
             </p>
           </CardContent>
@@ -221,16 +252,16 @@ const Index = () => {
 
       {/* Upcoming Events */}
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Upcoming Events</h2>
-        <Card className="bg-card/80 border-border/50">
+        <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
+        <Card className="events-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">July 2024</h3>
+              <h3 className="text-lg font-semibold">July 2024</h3>
               <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <Button variant="ghost" size="sm" className="hover:bg-muted">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <Button variant="ghost" size="sm" className="hover:bg-muted">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -245,7 +276,7 @@ const Index = () => {
                 <div 
                   key={i + 1} 
                   className={`p-2 text-sm cursor-pointer rounded-full ${
-                    i === 0 ? 'bg-primary text-primary-foreground' : 'text-white hover:bg-white/10'
+                    i === 0 ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
                   }`}
                 >
                   {i + 1}
@@ -258,8 +289,8 @@ const Index = () => {
 
       {/* Tasks */}
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Tasks</h2>
-        <Card className="bg-card/80 border-border/50">
+        <h2 className="text-2xl font-bold mb-4">Tasks</h2>
+        <Card className="tasks-card">
           <CardContent className="p-6">
             <div className="space-y-3">
               {tasks.map((task) => (
@@ -269,7 +300,7 @@ const Index = () => {
                   ) : (
                     <Circle className="h-5 w-5 text-muted-foreground" />
                   )}
-                  <span className={`text-white ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                  <span className={`${task.completed ? 'line-through text-muted-foreground' : ''}`}>
                     {task.text}
                   </span>
                 </div>
@@ -280,9 +311,9 @@ const Index = () => {
       </div>
 
       {/* Theme Toggle */}
-      <div className="flex items-center justify-between p-4 bg-card/50 rounded-lg border border-border/50">
+      <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg">
         <div>
-          <p className="text-white font-medium">Theme Mode</p>
+          <p className="font-medium">Theme Mode</p>
           <p className="text-sm text-muted-foreground">
             {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
           </p>

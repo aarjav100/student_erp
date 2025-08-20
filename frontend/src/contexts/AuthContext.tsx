@@ -13,6 +13,13 @@ interface User {
   program?: string;
   yearLevel?: number;
   status?: string;
+  // Optional profile fields used across the app
+  profileImage?: string;
+  address?: string;
+  dateOfBirth?: string;
+  emergencyContact?: string;
+  bio?: string;
+  passwordChangedAt?: string;
 }
 
 interface AuthContextType {

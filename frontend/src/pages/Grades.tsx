@@ -8,13 +8,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Award, TrendingUp, BookOpen, Calculator, Download, BarChart3, Calendar, Filter, Eye, FileText, Printer, Share2, TrendingDown, Target, Trophy, AlertCircle } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { Switch } from '@/components/ui/switch';
 
 const Grades = () => {
   const { user } = useAuth();
   const [selectedSemester, setSelectedSemester] = useState('all');
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [darkMode, setDarkMode] = useState(true);
+
+  // Initialize theme on component mount
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+    if (isDark) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+    }
+  };
 
   // Mock grades data with more details
   const [grades, setGrades] = useState([
@@ -673,6 +698,23 @@ const Grades = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
+      </div>
     </div>
   );
 };

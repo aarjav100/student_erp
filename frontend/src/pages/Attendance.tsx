@@ -8,13 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Calendar, CheckCircle, XCircle, Clock, TrendingUp, Download, BarChart3, 
   CalendarDays, AlertTriangle, Target, FileText, Printer, Filter, Eye, 
   Calendar as CalendarIcon, Search, ArrowUp, ArrowDown, Trophy, 
-  BookOpen, Users, MapPin, User, GraduationCap, Star, Edit, Plus, Trash2, Save, X
+  BookOpen, Users, MapPin, User, GraduationCap, Star, Edit, Plus, Trash2, Save, X,
+  Shield, Lock
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { AdminOnly, RoleBasedAccess } from '@/components/RoleBasedAccess';
 
 interface AttendanceRecord {
   id: number;
@@ -52,8 +56,43 @@ const Attendance = () => {
   const [sortBy, setSortBy] = useState<'date' | 'course' | 'status'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isEditingTimetable, setIsEditingTimetable] = useState(false);
+  
+  // Only allow editing if user is admin
+  const canEditTimetable = user?.role === 'admin';
   const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
   const [showAddSlot, setShowAddSlot] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize theme on component mount - default to light mode
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
+
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   // Enhanced mock attendance data
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([
@@ -783,6 +822,8 @@ const Attendance = () => {
 
   // Enhanced export functionality
   const exportAttendance = () => {
+    if (!canEditTimetable) return;
+    
     const csvContent = [
       ['Course Code', 'Course Name', 'Date', 'Time', 'Status', 'Instructor', 'Location', 'Duration', 'Notes', 'Semester'],
       ...filteredAttendance.map(record => [
@@ -810,6 +851,7 @@ const Attendance = () => {
 
   // Enhanced print functionality
   const printAttendance = () => {
+    if (!canEditTimetable) return;
     const printWindow = window.open('', '_blank');
     printWindow?.document.write(`
       <html>
@@ -1027,15 +1069,19 @@ const Attendance = () => {
   };
 
   const handleEditSlot = (slot: TimetableSlot) => {
+    if (!canEditTimetable) return;
     setEditingSlot(slot);
     setIsEditingTimetable(true);
   };
 
   const handleDeleteSlot = (id: number) => {
+    if (!canEditTimetable) return;
     setTimetable(prev => prev.filter(slot => slot.id !== id));
   };
 
   const handleSaveSlot = (updatedSlot: TimetableSlot) => {
+    if (!canEditTimetable) return;
+    
     if (editingSlot) {
       setTimetable(prev => prev.map(slot => 
         slot.id === editingSlot.id ? updatedSlot : slot
@@ -1049,6 +1095,7 @@ const Attendance = () => {
   };
 
   const handleAddSlot = () => {
+    if (!canEditTimetable) return;
     setEditingSlot(null);
     setShowAddSlot(true);
   };
@@ -1079,8 +1126,44 @@ const Attendance = () => {
           </div>
       </div>
 
+        {/* Role-based Access Control */}
+        <RoleBasedAccess allowedRoles={['student', 'teacher', 'admin']} showAlert={true}>
+          {/* Content for all authenticated users */}
+          <div className="space-y-4">
+            {/* Student View - Read Only */}
+            {user?.role === 'student' && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  You are viewing attendance in read-only mode. Only administrators can mark or modify attendance records.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Teacher View - Limited Access */}
+            {user?.role === 'teacher' && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  You can view attendance records but cannot modify them. Contact an administrator for attendance changes.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Admin View - Full Access */}
+            {user?.role === 'admin' && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You have full administrative access to mark, modify, and manage all attendance records.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </RoleBasedAccess>
+
         {/* Enhanced Filters and Controls */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-0 shadow-xl bg-slate-50/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
@@ -1091,7 +1174,7 @@ const Attendance = () => {
                     placeholder="Search courses, instructors, or notes..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/50 border-slate-200 focus:border-indigo-300 focus:ring-indigo-200"
+                    className="pl-10 bg-slate-100/50 border-slate-200 focus:border-indigo-300 focus:ring-indigo-200"
                   />
                 </div>
                 
@@ -1100,7 +1183,7 @@ const Attendance = () => {
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-slate-500" />
                     <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                      <SelectTrigger className="w-48 bg-white/50">
+                      <SelectTrigger className="w-48 bg-slate-100/50">
                         <SelectValue placeholder="All Courses" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1114,7 +1197,7 @@ const Attendance = () => {
                   </div>
                   
                   <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger className="w-32 bg-white/50">
+                    <SelectTrigger className="w-32 bg-slate-100/50">
                       <SelectValue placeholder="All Months" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1129,22 +1212,24 @@ const Attendance = () => {
               </div>
               
               {/* Action Buttons */}
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={exportAttendance} className="bg-white/50 hover:bg-white">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button variant="outline" onClick={printAttendance} className="bg-white/50 hover:bg-white">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print Report
-                </Button>
-              </div>
+              <AdminOnly fallback={null} showAlert={false}>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={exportAttendance} className="bg-slate-100/50 hover:bg-slate-200">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button variant="outline" onClick={printAttendance} className="bg-slate-100/50 hover:bg-slate-200">
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Report
+                  </Button>
+                </div>
+              </AdminOnly>
             </div>
           </CardContent>
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm shadow-lg">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-50/80 backdrop-blur-sm shadow-lg">
             <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
@@ -1179,7 +1264,7 @@ const Attendance = () => {
               </div>
                     <TrendingUp className="h-10 w-10 text-indigo-200" />
             </div>
-                  <Progress value={parseFloat(attendanceRate)} className="mt-3 bg-white/20" />
+                  <Progress value={parseFloat(attendanceRate)} className="mt-3 bg-slate-100/20" />
           </CardContent>
         </Card>
               
@@ -1233,7 +1318,7 @@ const Attendance = () => {
       </div>
 
             {/* Enhanced Course-wise Attendance */}
-            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                 <CardTitle className="flex items-center gap-3 text-xl">
                   <BookOpen className="h-6 w-6 text-indigo-500" />
@@ -1336,7 +1421,7 @@ const Attendance = () => {
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1426,7 +1511,7 @@ const Attendance = () => {
                             </div>
                           </div>
                           {record.notes && (
-                            <div className="mt-3 p-3 bg-white/50 rounded-lg border">
+                            <div className="mt-3 p-3 bg-slate-100/50 rounded-lg border">
                               <p className="text-sm">
                                 <span className="font-medium text-slate-700">Note:</span> 
                                 <span className="text-slate-600 ml-2">{record.notes}</span>
@@ -1443,7 +1528,7 @@ const Attendance = () => {
                             size="sm" 
                             variant="outline" 
                             onClick={() => setSelectedRecord(record)}
-                            className="hover:bg-white hover:shadow-md transition-all duration-200"
+                            className="hover:bg-slate-100 hover:shadow-md transition-all duration-200"
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View Details
@@ -1460,7 +1545,7 @@ const Attendance = () => {
           <TabsContent value="trends" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Weekly Trends */}
-              <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+              <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                   <CardTitle className="flex items-center gap-3">
                     <TrendingUp className="h-5 w-5 text-indigo-500" />
@@ -1515,7 +1600,7 @@ const Attendance = () => {
       </Card>
 
               {/* Performance Insights */}
-              <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+              <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                   <CardTitle className="flex items-center gap-3">
                     <Target className="h-5 w-5 text-indigo-500" />
@@ -1631,7 +1716,7 @@ const Attendance = () => {
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                 <CardTitle className="flex items-center gap-3">
                   <CalendarDays className="h-6 w-6 text-indigo-500" />
@@ -1661,7 +1746,7 @@ const Attendance = () => {
                 </div>
                 
                 {/* Enhanced Calendar Grid */}
-                <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
                   <div className="grid grid-cols-7 gap-2 mb-4">
                     {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                       <div key={day} className="text-center font-bold text-sm p-3 text-slate-700 bg-slate-50 rounded-lg">
@@ -1682,7 +1767,7 @@ const Attendance = () => {
                         <div 
                           key={i} 
                           className={`min-h-[80px] p-2 border rounded-lg text-center text-sm transition-all duration-200 hover:shadow-md ${
-                            isCurrentMonth ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 text-slate-400'
+                            isCurrentMonth ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-slate-200 text-slate-400'
                           } ${isToday ? 'ring-2 ring-indigo-300 bg-indigo-50' : ''}`}
                         >
                           <div className={`font-semibold mb-2 ${isToday ? 'text-indigo-600' : isCurrentMonth ? 'text-slate-800' : 'text-slate-400'}`}>
@@ -1719,7 +1804,7 @@ const Attendance = () => {
           </TabsContent>
 
           <TabsContent value="timetable" className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-xl bg-slate-50/90 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b">
                 <div className="flex justify-between items-center">
                   <div>
@@ -1730,22 +1815,25 @@ const Attendance = () => {
                     <CardDescription>Your class schedule with edit functionality</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleAddSlot}
-                      className="bg-white/50 hover:bg-white"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Class
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setIsEditingTimetable(!isEditingTimetable)}
-                      className="bg-white/50 hover:bg-white"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      {isEditingTimetable ? 'Done Editing' : 'Edit Timetable'}
-                    </Button>
+                    <AdminOnly fallback={null} showAlert={false}>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleAddSlot}
+                        className="bg-slate-100/50 hover:bg-slate-200"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Class
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => canEditTimetable && setIsEditingTimetable(!isEditingTimetable)}
+                      disabled={!canEditTimetable}
+                        className="bg-slate-100/50 hover:bg-slate-200"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        {isEditingTimetable ? 'Done Editing' : 'Edit Timetable'}
+                      </Button>
+                    </AdminOnly>
                   </div>
                 </div>
               </CardHeader>
@@ -1771,24 +1859,26 @@ const Attendance = () => {
                                   <p className="text-xs opacity-80">{slot.courseName}</p>
                                 </div>
                                 {isEditingTimetable && (
-                                  <div className="flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleEditSlot(slot)}
-                                      className="h-6 w-6 p-0 hover:bg-white/50"
-                                    >
-                                      <Edit className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteSlot(slot.id)}
-                                      className="h-6 w-6 p-0 hover:bg-red-100 text-red-600"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
+                                  <AdminOnly fallback={null} showAlert={false}>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEditSlot(slot)}
+                                        className="h-6 w-6 p-0 hover:bg-slate-100/50"
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteSlot(slot.id)}
+                                        className="h-6 w-6 p-0 hover:bg-red-100 text-red-600"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </AdminOnly>
                                 )}
                               </div>
                               <div className="space-y-1 text-xs">
@@ -1895,12 +1985,12 @@ const Attendance = () => {
 
                 {/* Notes Section */}
                 {selectedRecord.notes && (
-                  <div className="p-4 bg-slate-50 rounded-lg border">
+                  <div className="p-4 bg-slate-100/50 rounded-lg border">
                     <div className="flex items-center gap-2 mb-2">
                       <FileText className="h-4 w-4 text-slate-500" />
                       <span className="font-medium text-slate-700">Additional Notes</span>
                     </div>
-                    <p className="text-slate-800 bg-white p-3 rounded border italic">
+                    <p className="text-slate-800 bg-slate-50 p-3 rounded border italic">
                       "{selectedRecord.notes}"
                     </p>
                   </div>
@@ -2095,6 +2185,23 @@ const Attendance = () => {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Theme Toggle */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
+          <div>
+            <p className="font-medium">Theme Mode</p>
+            <p className="text-sm text-muted-foreground">
+              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
+            </p>
+          </div>
+          <Switch 
+            checked={darkMode} 
+            onCheckedChange={toggleTheme}
+            className="data-[state=checked]:bg-primary ml-4"
+          />
+        </div>
       </div>
     </div>
   );

@@ -262,7 +262,7 @@ const AITutor = () => {
                       className={`max-w-xs lg:max-w-md p-3 rounded-lg ${
                         message.type === 'user'
                           ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
-                          : 'bg-white border shadow-sm'
+                          : 'bg-slate-50 border shadow-sm'
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
@@ -275,7 +275,7 @@ const AITutor = () => {
               )}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-white border shadow-sm p-3 rounded-lg">
+                  <div className="bg-slate-100 border shadow-sm p-3 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">AI is thinking...</span>
@@ -333,7 +333,7 @@ const AITutor = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="p-4 border rounded-lg bg-white">
+                <div className="p-4 border rounded-lg bg-slate-50">
                   <h3 className="font-semibold mb-4">{currentQuestion.question}</h3>
                   <div className="space-y-2">
                     {currentQuestion.options.map((option, index) => (

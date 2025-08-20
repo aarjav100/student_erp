@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,14 +51,30 @@ const AppContent = () => {
   const { user } = useAuth();
   const location = window.location;
   const navigate = (path: string) => window.location.pathname !== path && (window.location.href = path);
+  
+  // Initialize theme on app mount - default to light mode
+  React.useEffect(() => {
+    // Check if theme preference is stored in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    } else {
+      // Default to light mode
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, []);
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen" style={{paddingTop: '10px'}}>
-        <Sidebar className="glassmorphism-sidebar" style={{background: 'linear-gradient(180deg, rgba(37, 25, 54, 0.85), rgba(20, 14, 32, 0.9))', borderRight: '1px solid hsl(248 22% 20%)'}}>
+      <div className="flex min-h-screen w-full" style={{paddingTop: '0'}}>
+        <Sidebar className="glassmorphism-sidebar">
           <SidebarHeader className="sidebar-header p-4">
             <div className="flex items-center justify-between w-full">
-              <span className="text-xl font-bold text-white drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
+              <span className="text-xl font-bold text-slate-100 drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
               {user && <UserProfile />}
             </div>
           </SidebarHeader>
@@ -205,18 +222,24 @@ const AppContent = () => {
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <div className="main-content-area dashboard-container" style={{marginLeft: '260px', width: 'calc(100% - 260px)', height: '100vh', paddingLeft: '0', paddingRight: '5px'}}>
-          <div className="relative w-full h-full overflow-hidden" style={{background: 'linear-gradient(180deg, hsl(248 24% 9%), hsl(248 22% 13%))'}}>
+        <div className="main-content-area dashboard-container" style={{marginLeft: '260px', width: 'calc(100% - 260px)', height: '100vh', paddingLeft: '0', paddingRight: '0'}}>
+          <div className="relative w-full h-full overflow-hidden">
             {/* Enhanced background decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 30% 30%, hsl(265 85% 66% / .18), transparent 60%)'}}></div>
-              <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 20% 80%, hsl(280 85% 70% / .14), transparent 55%)'}}></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl" style={{background: 'radial-gradient(circle at 50% 50%, hsl(200 65% 55% / .10), transparent 60%)'}}></div>
+              {/* Light mode decorative elements */}
+              <div className="light-mode-decoration absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl"></div>
+              <div className="light-mode-decoration absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"></div>
+              <div className="light-mode-decoration absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl"></div>
+              
+              {/* Dark mode decorative elements */}
+              <div className="dark-mode-decoration absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl"></div>
+              <div className="dark-mode-decoration absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"></div>
+              <div className="dark-mode-decoration absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl"></div>
             </div>
             
             {/* Main content container */}
             <div className="relative z-10 w-full h-full p-0">
-              <div className="w-full h-full rounded-xl shadow-2xl border border-[hsl(248_22%_20%)]/60 dashboard-content" style={{background: 'linear-gradient(180deg, hsl(248 20% 12% / .85), hsl(248 22% 10% / .85))', backdropFilter: 'blur(6px)'}}>
+              <div className="w-full h-full rounded-xl shadow-2xl dashboard-content">
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={
