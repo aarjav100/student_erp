@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -89,6 +90,11 @@ const AppContent = () => {
   const location = useLocation();
   const [darkMode, setDarkMode] = useState(false);
   
+  // Sidebar slider states
+  const [volumeSlider, setVolumeSlider] = useState([70]);
+  const [brightnessSlider, setBrightnessSlider] = useState([80]);
+  const [notificationsSlider, setNotificationsSlider] = useState([60]);
+  
   const navigate = (path: string) => {
     if (location.pathname !== path) {
       window.location.href = path;
@@ -135,7 +141,7 @@ const AppContent = () => {
       <SidebarProvider>
         <div className="flex h-full w-full">
           {/* Show sidebar on all pages - Force visibility */}
-          <div className="glassmorphism-sidebar w-64 flex-shrink-0 flex flex-col" style={{display: 'flex', visibility: 'visible', opacity: 1, zIndex: 1000}}>
+          <div className="glassmorphism-sidebar w-64 flex-shrink-0 flex flex-col h-screen overflow-y-auto overflow-x-hidden" style={{display: 'flex', visibility: 'visible', opacity: 1, zIndex: 1000}}>
               <SidebarHeader className="sidebar-header p-4">
                 <div className="flex items-center justify-between w-full mb-4">
                   <span className="text-xl font-bold text-slate-100 drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
@@ -143,7 +149,7 @@ const AppContent = () => {
                 </div>
                 
                 {/* Theme Converter */}
-                <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 mb-4">
                   <div className="flex items-center space-x-2">
                     {darkMode ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-yellow-400" />}
                     <div>
@@ -158,6 +164,63 @@ const AppContent = () => {
                     onCheckedChange={toggleTheme}
                     className="data-[state=checked]:bg-blue-500"
                   />
+                </div>
+
+                {/* Sidebar Sliders */}
+                <div className="space-y-4">
+                  {/* Volume Control */}
+                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Bell className="h-4 w-4 text-slate-300" />
+                        <span className="text-xs font-medium text-slate-200">Volume</span>
+                      </div>
+                      <span className="text-xs text-slate-400">{volumeSlider[0]}%</span>
+                    </div>
+                    <Slider
+                      value={volumeSlider}
+                      onValueChange={setVolumeSlider}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Brightness Control */}
+                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Sun className="h-4 w-4 text-slate-300" />
+                        <span className="text-xs font-medium text-slate-200">Brightness</span>
+                      </div>
+                      <span className="text-xs text-slate-400">{brightnessSlider[0]}%</span>
+                    </div>
+                    <Slider
+                      value={brightnessSlider}
+                      onValueChange={setBrightnessSlider}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Notifications Control */}
+                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <MessageSquare className="h-4 w-4 text-slate-300" />
+                        <span className="text-xs font-medium text-slate-200">Notifications</span>
+                      </div>
+                      <span className="text-xs text-slate-400">{notificationsSlider[0]}%</span>
+                    </div>
+                    <Slider
+                      value={notificationsSlider}
+                      onValueChange={setNotificationsSlider}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </SidebarHeader>
               <SidebarSeparator className="sidebar-separator" />
@@ -509,7 +572,7 @@ const AppContent = () => {
             </div>
           
           {/* Main content area */}
-          <div className="flex-1 h-full overflow-hidden">
+          <div className="flex-1 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-64">
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={

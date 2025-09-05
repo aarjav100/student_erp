@@ -857,7 +857,7 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       <div className="container mx-auto px-4 py-8">
       {/* Enhanced Header */}
         <div className="text-center space-y-6 mb-12">

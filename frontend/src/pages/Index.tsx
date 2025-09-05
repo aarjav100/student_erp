@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Slider } from '@/components/ui/slider';
 import { useState, useEffect } from 'react';
 import { 
   GraduationCap, 
@@ -36,7 +37,11 @@ import {
   Monitor,
   BookOpenCheck,
   Calendar as CalendarIcon,
-  ExternalLink
+  ExternalLink,
+  Building2,
+  BookOpenCheck as BookIcon,
+  Calendar as CalendarIcon2,
+  Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,6 +49,12 @@ const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  
+  // Slider states
+  const [attendanceSlider, setAttendanceSlider] = useState([92]);
+  const [gpaSlider, setGpaSlider] = useState([3.8]);
+  const [progressSlider, setProgressSlider] = useState([75]);
+  const [workloadSlider, setWorkloadSlider] = useState([60]);
 
   // Load profile image from localStorage on component mount
   useEffect(() => {
@@ -101,7 +112,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="h-full w-full p-6 overflow-hidden bg-gray-50">
+    <div className="h-full w-full p-6 overflow-y-auto overflow-x-hidden bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       {/* Welcome Banner */}
       <div className="mb-6">
         <div className="flex items-center space-x-4">
@@ -134,8 +145,74 @@ const Index = () => {
           </div>
       </div>
 
+      {/* Current Status and Key Metrics */}
+      <div className="mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Current status and key metrics for Student</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Branch */}
+          <Card className="bg-white shadow-sm border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Branch</p>
+                  <p className="text-xs text-gray-600">CSE</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Course */}
+          <Card className="bg-white shadow-sm border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <BookIcon className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Course</p>
+                  <p className="text-xs text-gray-600">B.Tech</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Last Updated */}
+          <Card className="bg-white shadow-sm border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <CalendarIcon2 className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Last Updated</p>
+                  <p className="text-xs text-gray-600">2 hours ago</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status */}
+          <Card className="bg-white shadow-sm border border-gray-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Activity className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Status</p>
+                  <p className="text-xs text-gray-600">Active</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-200px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Column */}
         <div className="space-y-4 overflow-hidden">
       {/* Quick Stats */}
@@ -145,31 +222,59 @@ const Index = () => {
               <Card className="bg-white shadow-sm border border-gray-200">
                 <CardContent className="p-4 text-center">
                   <p className="text-sm text-gray-600 mb-2">Attendance %</p>
-                  <p className="text-2xl font-bold text-blue-600">92%</p>
+                  <p className="text-2xl font-bold text-blue-600 mb-3">{attendanceSlider[0]}%</p>
+                  <Slider
+                    value={attendanceSlider}
+                    onValueChange={setAttendanceSlider}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
             </CardContent>
           </Card>
               <Card className="bg-white shadow-sm border border-gray-200">
                 <CardContent className="p-4 text-center">
                   <p className="text-sm text-gray-600 mb-2">GPA</p>
-                  <p className="text-2xl font-bold text-blue-600">3.8</p>
+                  <p className="text-2xl font-bold text-blue-600 mb-3">{gpaSlider[0]}</p>
+                  <Slider
+                    value={gpaSlider}
+                    onValueChange={setGpaSlider}
+                    max={4.0}
+                    step={0.1}
+                    className="w-full"
+                  />
             </CardContent>
           </Card>
               <Card className="bg-white shadow-sm border border-gray-200">
                 <CardContent className="p-4 text-center">
-                  <p className="text-sm text-gray-600 mb-2">Classes</p>
-                  <p className="text-2xl font-bold text-blue-600">5</p>
+                  <p className="text-sm text-gray-600 mb-2">Progress</p>
+                  <p className="text-2xl font-bold text-blue-600 mb-3">{progressSlider[0]}%</p>
+                  <Slider
+                    value={progressSlider}
+                    onValueChange={setProgressSlider}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
             </CardContent>
           </Card>
               <Card className="bg-white shadow-sm border border-gray-200">
                 <CardContent className="p-4 text-center">
-                  <p className="text-sm text-gray-600 mb-2">Assignments</p>
-                  <p className="text-2xl font-bold text-blue-600">{assignments.filter(a => a.status === 'pending').length}</p>
+                  <p className="text-sm text-gray-600 mb-2">Workload</p>
+                  <p className="text-2xl font-bold text-blue-600 mb-3">{workloadSlider[0]}%</p>
+                  <Slider
+                    value={workloadSlider}
+                    onValueChange={setWorkloadSlider}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
             </CardContent>
           </Card>
         </div>
       </div>
 
-                {/* Timetable */}
+      {/* Timetable */}
           <div className="flex-1 overflow-hidden">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-bold text-gray-900">Timetable</h2>
@@ -189,9 +294,9 @@ const Index = () => {
                 <div className="mb-3">
                   <h3 className="text-sm font-semibold text-gray-700 mb-1">Weekly Class Timetable (CSE – 3rd Year)</h3>
                 </div>
-                <div className="overflow-x-auto">
+            <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead>
+                <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left p-3 font-semibold text-gray-700">Day</th>
                         <th className="text-left p-3 font-semibold text-gray-700">9–10 AM</th>
@@ -199,9 +304,9 @@ const Index = () => {
                         <th className="text-left p-3 font-semibold text-gray-700">11–12 PM</th>
                         <th className="text-left p-3 font-semibold text-gray-700">12–1 PM</th>
                         <th className="text-left p-3 font-semibold text-gray-700">2–4 PM</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  </tr>
+                </thead>
+                <tbody>
                       <tr className="border-b border-gray-100">
                         <td className="p-3 font-medium text-gray-900">Monday</td>
                         <td className="p-3 text-gray-700">{timetableData[0].monday}</td>
@@ -241,12 +346,12 @@ const Index = () => {
                         <td className="p-3 text-gray-700">{timetableData[2].friday}</td>
                         <td className="p-3 text-gray-700">{timetableData[3].friday}</td>
                         <td className="p-3 text-gray-700">{timetableData[4].friday}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
           </div>
       </div>
 
@@ -264,12 +369,40 @@ const Index = () => {
                     <Badge className="bg-green-100 text-green-600 border-green-200 text-xs px-2 py-1">+12%</Badge>
                   </div>
                   <p className="text-xs text-gray-600 mb-3">Last 30 Days</p>
-                  <div className="flex items-end space-x-2 h-16">
+                  <div className="flex items-end space-x-2 h-16 mb-4">
                     <div className="flex-1 bg-blue-200 rounded-t" style={{height: '60%'}}></div>
                     <div className="flex-1 bg-blue-200 rounded-t" style={{height: '80%'}}></div>
                     <div className="flex-1 bg-blue-200 rounded-t" style={{height: '45%'}}></div>
                     <div className="flex-1 bg-blue-200 rounded-t" style={{height: '90%'}}></div>
                     <div className="flex-1 bg-blue-200 rounded-t" style={{height: '70%'}}></div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Study Hours</span>
+                    <span>{progressSlider[0]}h</span>
+                  </div>
+                  <Slider
+                    value={progressSlider}
+                    onValueChange={setProgressSlider}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Focus Level</span>
+                    <span>{workloadSlider[0]}%</span>
+                  </div>
+                  <Slider
+                    value={workloadSlider}
+                    onValueChange={setWorkloadSlider}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -318,7 +451,7 @@ const Index = () => {
                           ) : (
                             <Circle className="h-4 w-4 text-gray-400" />
                           )}
-                          <div>
+      <div>
                             <p className="text-sm font-medium text-gray-900">{assignment.title}</p>
                             <p className="text-xs text-gray-500">{assignment.subject} – Due: {assignment.dueDate}</p>
                             <Badge 
@@ -331,8 +464,8 @@ const Index = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
-                  
+      </div>
+
                   {/* Submission Guidelines */}
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                     <h4 className="text-xs font-semibold text-blue-800 mb-2">Submission Guidelines</h4>
@@ -354,13 +487,13 @@ const Index = () => {
                       <Button variant="outline" size="sm" className="text-xs h-7">
                         <Download className="h-3 w-3 mr-1" />
                         Sample Solutions
-                      </Button>
+                </Button>
                       <Button variant="outline" size="sm" className="text-xs h-7">
                         <Download className="h-3 w-3 mr-1" />
                         Grading Rubric
-                      </Button>
-                    </div>
-                  </div>
+                </Button>
+              </div>
+            </div>
                 </CardContent>
               </Card>
 
@@ -390,12 +523,12 @@ const Index = () => {
                         <div className="flex items-center space-x-1 text-xs text-gray-500">
                           <MapPin className="h-3 w-3" />
                           <span>{exam.location}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
               {/* Final Exams */}
               <Card className="bg-white shadow-sm border border-gray-200">
@@ -411,7 +544,7 @@ const Index = () => {
                       <div key={exam.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
                         <div className="flex items-center space-x-3">
                           <BookOpenCheck className="h-4 w-4 text-red-500" />
-                          <div>
+      <div>
                             <p className="text-sm font-medium text-gray-900">{exam.subject}</p>
                             <p className="text-xs text-gray-500">{exam.type}</p>
                             <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -424,9 +557,9 @@ const Index = () => {
                           <MapPin className="h-3 w-3" />
                           <span>{exam.location}</span>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                </div>
+              ))}
+            </div>
                   
                   {/* Exam Guidelines */}
                   <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
@@ -436,10 +569,10 @@ const Index = () => {
                       <li>• No electronic gadgets allowed</li>
                       <li>• Report 30 minutes before start time</li>
                     </ul>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
+          </CardContent>
+        </Card>
+      </div>
           </div>
         </div>
       </div>

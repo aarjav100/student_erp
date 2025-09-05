@@ -260,7 +260,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-full w-full bg-gradient-to-b from-sky-100 via-sky-50 to-white p-4">
+    <div className="h-full w-full bg-gradient-to-b from-sky-100 via-sky-50 to-white p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       <div className="max-w-md mx-auto">
         {/* Header */}
           <div className="text-center mb-6">

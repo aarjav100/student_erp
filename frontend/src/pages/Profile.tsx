@@ -465,12 +465,12 @@ const Profile = () => {
   const handleRemoveImage = async () => {
     setUploadingImage(true);
     try {
-      setProfileImage(null);
+        setProfileImage(null);
       localStorage.removeItem('userProfileImage');
-      toast({
-        title: "Success",
-        description: "Profile picture removed successfully!",
-      });
+        toast({
+          title: "Success",
+          description: "Profile picture removed successfully!",
+        });
     } catch (error) {
       toast({
         title: "Error",
@@ -488,7 +488,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       {/* Enhanced Header */}
       <div className="text-center space-y-4 mb-8">
         <div className="flex justify-center">

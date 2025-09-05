@@ -287,7 +287,7 @@ const Timetable = () => {
   };
 
   return (
-    <div className="h-full w-full p-6 overflow-hidden bg-gray-50">
+    <div className="h-full w-full p-6 overflow-y-auto overflow-x-hidden bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">

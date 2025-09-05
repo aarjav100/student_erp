@@ -12,7 +12,8 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -24,7 +25,8 @@ html, body, #root {
   flex-direction: column;
   position: relative;
   z-index: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Ensure all content is visible */
@@ -288,8 +290,11 @@ All colors MUST be HSL.
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  position: relative !important;
+  position: fixed !important;
   z-index: 10 !important;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 :root .glassmorphism-sidebar {
@@ -338,31 +343,165 @@ All colors MUST be HSL.
 
 /* Custom scrollbar - enhanced for both themes */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  border-radius: 4px;
-}
-
-:root ::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.1);
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.1);
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  transition: background 0.3s ease;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  background-clip: content-box;
+}
+
+/* Tailwind scrollbar utilities */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
+
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+}
+
+/* Dark mode scrollbar */
+.dark .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+.dark .scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #1f2937;
+}
+
+/* Custom Slider Styling */
+[data-radix-slider-track] {
+  background-color: #e5e7eb;
+  height: 6px;
+  border-radius: 3px;
+}
+
+[data-radix-slider-range] {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 3px;
+}
+
+[data-radix-slider-thumb] {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+[data-radix-slider-thumb]:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-radix-slider-thumb]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Dark mode slider styling */
+.dark [data-radix-slider-track] {
+  background-color: #374151;
+}
+
+.dark [data-radix-slider-range] {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.dark [data-radix-slider-thumb] {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: 2px solid #1f2937;
+}
+
+.dark [data-radix-slider-thumb]:focus {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+/* Sidebar slider specific styling */
+.glassmorphism-sidebar [data-radix-slider-track] {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.glassmorphism-sidebar [data-radix-slider-range] {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(29, 78, 216, 0.8));
+}
+
+.glassmorphism-sidebar [data-radix-slider-thumb] {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(29, 78, 216, 0.9));
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Sidebar specific scrollbar styling */
+.glassmorphism-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.glassmorphism-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
-:root ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+.glassmorphism-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+.glassmorphism-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Dark mode sidebar scrollbar */
+.dark .glassmorphism-sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dark .glassmorphism-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glassmorphism-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dashboard slider specific styling */
+.dashboard-content [data-radix-slider-track] {
+  background-color: #f3f4f6;
+}
+
+.dashboard-content [data-radix-slider-range] {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.dashboard-content [data-radix-slider-thumb] {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border: 2px solid white;
 }
 
 /* Dashboard container enhancements */
@@ -385,9 +524,11 @@ All colors MUST be HSL.
 
 /* Dashboard content enhancements */
 .dashboard-content {
-  height: 100vh;
+  height: auto;
+  min-height: 100vh;
   transition: all 0.3s ease;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 :root .dashboard-content {
@@ -889,7 +1030,29 @@ All colors MUST be HSL.
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: auto;
+}
+
+/* Force scrollbars to be visible and functional */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b rgba(148, 163, 184, 0.2);
+}
+
+/* Ensure all scrollable containers work properly */
+.overflow-y-auto,
+.overflow-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b rgba(148, 163, 184, 0.2);
+}
+
+/* Fix for flex containers that might prevent scrolling */
+.flex {
+  min-height: 0;
+}
+
+.flex-1 {
+  min-height: 0;
 }
 
 /* Fix for any hidden content */

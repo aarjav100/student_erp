@@ -143,7 +143,7 @@ const Exams = () => {
   });
 
   return (
-    <div className="h-full w-full p-6 overflow-hidden bg-gray-50">
+    <div className="h-full w-full p-6 overflow-y-auto overflow-x-hidden bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Exams & Tests</h1>
