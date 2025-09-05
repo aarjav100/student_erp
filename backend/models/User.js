@@ -57,8 +57,22 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'teacher', 'admin'],
+    enum: ['student', 'faculty', 'hod', 'admin', 'staff'],
     default: 'student',
+  },
+  course: {
+    type: String,
+    trim: true,
+    required: function() {
+      return ['student', 'faculty', 'hod'].includes(this.role);
+    }
+  },
+  branch: {
+    type: String,
+    trim: true,
+    required: function() {
+      return ['student', 'faculty', 'hod'].includes(this.role);
+    }
   },
   avatarUrl: {
     type: String,

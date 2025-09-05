@@ -14,6 +14,7 @@ import connectDB from './config/database.js';
 // Import routes
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import dashboardRoutes from './routes/dashboard.js';
 // Temporarily commented out until MongoDB models are implemented
 // import courseRoutes from './routes/courses.js';
 // import enrollmentRoutes from './routes/enrollments.js';
@@ -125,6 +126,7 @@ app.get('/socket.io/*', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 // Temporarily commented out until MongoDB models are implemented
 // app.use('/api/courses', courseRoutes);
 // app.use('/api/enrollments', enrollmentRoutes);

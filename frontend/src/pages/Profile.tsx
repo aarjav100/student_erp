@@ -63,7 +63,11 @@ const Profile = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [profileImageOpen, setProfileImageOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>((user as any)?.profileImage || null);
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    // Try to load from localStorage first, then fallback to user profile image
+    const storedImage = localStorage.getItem('userProfileImage');
+    return storedImage || (user as any)?.profileImage || null;
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [cropData, setCropData] = useState({ x: 0, y: 0, width: 200, height: 200 });
@@ -428,21 +432,15 @@ const Profile = () => {
 
     setUploadingImage(true);
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('profileImage', selectedFile);
-
-      const response = await fetch('http://localhost:5000/api/users/upload-profile-image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProfileImage(data.imageUrl);
+      // Use FileReader to convert image to base64 and store in localStorage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setProfileImage(result);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('userProfileImage', result);
+        
         toast({
           title: "Success",
           description: "Profile picture updated successfully!",
@@ -450,16 +448,16 @@ const Profile = () => {
         setProfileImageOpen(false);
         setSelectedFile(null);
         setImagePreview(null);
-      } else {
-        throw new Error('Failed to upload image');
-      }
+        setUploadingImage(false);
+      };
+      
+      reader.readAsDataURL(selectedFile);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to upload profile picture. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setUploadingImage(false);
     }
   };
@@ -467,22 +465,12 @@ const Profile = () => {
   const handleRemoveImage = async () => {
     setUploadingImage(true);
     try {
-      const response = await fetch('http://localhost:5000/api/users/remove-profile-image', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      setProfileImage(null);
+      localStorage.removeItem('userProfileImage');
+      toast({
+        title: "Success",
+        description: "Profile picture removed successfully!",
       });
-
-      if (response.ok) {
-        setProfileImage(null);
-        toast({
-          title: "Success",
-          description: "Profile picture removed successfully!",
-        });
-      } else {
-        throw new Error('Failed to remove image');
-      }
     } catch (error) {
       toast({
         title: "Error",

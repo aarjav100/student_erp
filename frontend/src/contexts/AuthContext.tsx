@@ -7,9 +7,11 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'faculty' | 'hod' | 'admin' | 'staff';
   studentId?: string;
   phone?: string;
+  course?: string;
+  branch?: string;
   program?: string;
   yearLevel?: number;
   status?: string;
@@ -25,7 +27,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string, role?: string, course?: string, branch?: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   adminSignIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -85,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string) => {
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string, role?: string, course?: string, branch?: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -99,6 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           lastName,
           studentId,
           phone,
+          role,
+          course,
+          branch,
         }),
       });
 

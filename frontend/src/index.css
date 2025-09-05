@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Debug styles to ensure visibility */
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+#root {
+  padding: 0 !important;
+  text-align: left;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Ensure all content is visible */
+.dashboard-container,
+.dashboard-content,
+.sidebar-content,
+.main-content-area {
+  position: relative;
+  z-index: 1;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Force visibility for debugging */
+.glassmorphism-sidebar,
+.sidebar-menu-button,
+.card,
+.dashboard-content {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -239,6 +285,11 @@ All colors MUST be HSL.
 .glassmorphism-sidebar {
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 :root .glassmorphism-sidebar {
@@ -316,10 +367,10 @@ All colors MUST be HSL.
 
 /* Dashboard container enhancements */
 .dashboard-container {
-  min-height: 100vh;
-  width: calc(100% - 260px);
-  margin-left: 260px;
+  height: 100vh;
+  width: 100%;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 /* Light mode dashboard background */
@@ -334,8 +385,9 @@ All colors MUST be HSL.
 
 /* Dashboard content enhancements */
 .dashboard-content {
-  min-height: 100vh;
+  height: 100vh;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 :root .dashboard-content {
@@ -430,46 +482,76 @@ All colors MUST be HSL.
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Full screen layout fixes */
-html, body, #root {
-  height: 100vh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-}
-
-#root {
-  padding: 0 !important;
-  text-align: left;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
 /* Ensure smooth theme transitions */
 * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Force sidebar visibility */
+.glassmorphism-sidebar,
+.glassmorphism-sidebar * {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.glassmorphism-sidebar {
+  position: relative !important;
+  z-index: 1000 !important;
+  width: 16rem !important;
+  min-width: 16rem !important;
+  max-width: 16rem !important;
+}
+
+/* Override any hidden states */
+[data-sidebar="sidebar"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure sidebar content is visible */
+.sidebar-content,
+.sidebar-menu,
+.sidebar-menu-button {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.sidebar-content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+}
+
+.sidebar-menu {
+  padding: 0.5rem !important;
+}
+
+.sidebar-menu-button {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 0.75rem !important;
+  margin: 0.25rem 0 !important;
+}
+
 /* Dashboard full screen enhancements */
 .dashboard-container {
-  min-height: 100vh;
-  width: calc(100% - 260px);
-  margin-left: 260px;
+  height: 100vh;
+  width: 100%;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
 .dashboard-content {
-  min-height: 100vh;
+  height: 100vh;
   transition: all 0.3s ease;
   border-radius: 0;
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  padding: 20px;
 }
 
 /* Enhanced light mode text contrast */
@@ -789,10 +871,101 @@ html, body, #root {
   .dashboard-container {
     width: 100%;
     margin-left: 0;
+    padding: 10px;
+  }
+  
+  .dashboard-content {
+    padding: 10px;
   }
   
   .glassmorphism-sidebar {
     position: fixed;
     z-index: 50;
   }
+}
+
+/* Ensure content is always visible */
+.main-content-area {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+/* Fix for any hidden content */
+.hidden {
+  display: none !important;
+}
+
+/* Ensure proper spacing */
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+/* Auth page specific fixes */
+.min-h-screen {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Ensure auth page is fully visible */
+.bg-gradient-to-b {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Fix for auth form container */
+.max-w-sm {
+  max-width: 24rem;
+  width: 100%;
+}
+
+/* Ensure auth content is centered and visible */
+.flex.items-center.justify-center {
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Fix for any hidden auth elements */
+.auth-container {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Additional fixes for auth page visibility */
+.min-h-screen.bg-gradient-to-b {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Ensure all auth form elements are visible */
+.bg-white.border-0.shadow-xl.rounded-2xl {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Fix for any potential overflow issues */
+.flex.flex-col.relative {
+  overflow: visible !important;
+  min-height: 100vh !important;
+}
+
+/* Ensure proper stacking context */
+.relative.z-10 {
+  z-index: 10 !important;
+  position: relative !important;
 }

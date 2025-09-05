@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import UserProfile from "@/components/UserProfile";
@@ -17,8 +18,12 @@ import Messages from "./pages/Messages";
 import Attendance from "./pages/Attendance";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Assignments from "./pages/Assignments";
+import Exams from "./pages/Exams";
+import Timetable from "./pages/Timetable";
 import AIFeatures from "./pages/AIFeatures";
 import AIProjects from "./pages/AIProjects";
+import Dashboard from "./components/Dashboard/Dashboard";
 import AIChatbot from "./components/AI/AIChatbot";
 import {
   SidebarProvider,
@@ -42,15 +47,56 @@ import {
   User,
   Settings as SettingsIcon,
   Sparkles,
-  Code
+  Code,
+  TrendingUp,
+  HelpCircle,
+  AlertTriangle,
+  Bell,
+  BarChart3,
+  Library,
+  Calendar as CalendarIcon,
+  Users,
+  ClipboardList,
+  BookMarked,
+  GraduationCap,
+  Award,
+  Clock,
+  FileCheck,
+  Download,
+  Upload,
+  Search,
+  Filter,
+  Star,
+  Heart,
+  Shield,
+  Zap,
+  Target,
+  PieChart,
+  Activity,
+  TrendingDown,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Info,
+  Sun,
+  Moon
 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user } = useAuth();
-  const location = window.location;
-  const navigate = (path: string) => window.location.pathname !== path && (window.location.href = path);
+  const location = useLocation();
+  const [darkMode, setDarkMode] = useState(false);
+  
+  const navigate = (path: string) => {
+    if (location.pathname !== path) {
+      window.location.href = path;
+    }
+  };
+  
+  // Check if we're on the auth page
+  const isAuthPage = location.pathname === "/auth";
   
   // Initialize theme on app mount - default to light mode
   React.useEffect(() => {
@@ -58,104 +104,354 @@ const AppContent = () => {
     const savedTheme = localStorage.getItem('theme');
     
     if (savedTheme === 'dark') {
+      setDarkMode(true);
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark');
     } else {
       // Default to light mode
+      setDarkMode(false);
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
   }, []);
 
+  // Function to toggle theme
+  const toggleTheme = (checked: boolean) => {
+    setDarkMode(checked);
+    if (checked) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full" style={{paddingTop: '0'}}>
-        <Sidebar className="glassmorphism-sidebar">
-          <SidebarHeader className="sidebar-header p-4">
-            <div className="flex items-center justify-between w-full">
-              <span className="text-xl font-bold text-slate-100 drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
-              {user && <UserProfile />}
-            </div>
-          </SidebarHeader>
-          <SidebarSeparator className="sidebar-separator" />
-          <SidebarContent className="sidebar-content">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/"} 
-                  onClick={() => navigate("/")}
-                  className={`sidebar-menu-button ${location.pathname === "/" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-home">
-                    <Home className="h-5 w-5" />
+    <div className="h-screen w-full overflow-hidden">
+      <SidebarProvider>
+        <div className="flex h-full w-full">
+          {/* Show sidebar on all pages - Force visibility */}
+          <div className="glassmorphism-sidebar w-64 flex-shrink-0 flex flex-col" style={{display: 'flex', visibility: 'visible', opacity: 1, zIndex: 1000}}>
+              <SidebarHeader className="sidebar-header p-4">
+                <div className="flex items-center justify-between w-full mb-4">
+                  <span className="text-xl font-bold text-slate-100 drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
+                  {user && <UserProfile />}
+                </div>
+                
+                {/* Theme Converter */}
+                <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <div className="flex items-center space-x-2">
+                    {darkMode ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-yellow-400" />}
+                    <div>
+                      <p className="text-xs font-medium text-slate-200">Theme</p>
+                      <p className="text-xs text-slate-400">
+                        {darkMode ? 'Dark mode' : 'Light mode'}
+                      </p>
+                    </div>
                   </div>
-                  <span> Home </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/courses"} 
-                  onClick={() => navigate("/courses")}
-                  className={`sidebar-menu-button ${location.pathname === "/courses" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-courses">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <span> My Courses </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/attendance"} 
-                  onClick={() => navigate("/attendance")}
-                  className={`sidebar-menu-button ${location.pathname === "/attendance" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-attendance">
-                    <Calendar className="h-5 w-5" />
-                  </div>
-                  <span> Attendance </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/grades"} 
-                  onClick={() => navigate("/grades")}
-                  className={`sidebar-menu-button ${location.pathname === "/grades" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-grades">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <span> Grades </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/messages"} 
-                  onClick={() => navigate("/messages")}
-                  className={`sidebar-menu-button ${location.pathname === "/messages" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-messages">
-                    <MessageSquare className="h-5 w-5" />
-                  </div>
-                  <span> Messages </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={location.pathname === "/tuition"} 
-                  onClick={() => navigate("/tuition")}
-                  className={`sidebar-menu-button ${location.pathname === "/tuition" ? 'active' : ''}`}
-                > 
-                  <div className="icon-container icon-fees">
-                    <CreditCard className="h-5 w-5" />
-                  </div>
-                  <span> Pay Fees </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {user && (
-                <>
+                  <Switch 
+                    checked={darkMode} 
+                    onCheckedChange={toggleTheme}
+                    className="data-[state=checked]:bg-blue-500"
+                  />
+                </div>
+              </SidebarHeader>
+              <SidebarSeparator className="sidebar-separator" />
+              <SidebarContent className="sidebar-content">
+                <SidebarMenu>
+                  {/* Main Navigation */}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/"} 
+                      onClick={() => navigate("/")}
+                      className={`sidebar-menu-button ${location.pathname === "/" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-home">
+                        <Home className="h-5 w-5" />
+                      </div>
+                      <span> Home </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/dashboard"} 
+                      onClick={() => navigate("/dashboard")}
+                      className={`sidebar-menu-button ${location.pathname === "/dashboard" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-dashboard">
+                        <TrendingUp className="h-5 w-5" />
+                      </div>
+                      <span> Dashboard </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* Academic Section */}
                   <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Academic
+                  </div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/courses"} 
+                      onClick={() => navigate("/courses")}
+                      className={`sidebar-menu-button ${location.pathname === "/courses" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-courses">
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <span> My Courses </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/attendance"} 
+                      onClick={() => navigate("/attendance")}
+                      className={`sidebar-menu-button ${location.pathname === "/attendance" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-attendance">
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <span> Attendance </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/grades"} 
+                      onClick={() => navigate("/grades")}
+                      className={`sidebar-menu-button ${location.pathname === "/grades" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-grades">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <span> Grades & Results </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/assignments"} 
+                      onClick={() => navigate("/assignments")}
+                      className={`sidebar-menu-button ${location.pathname === "/assignments" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-assignments">
+                        <ClipboardList className="h-5 w-5" />
+                      </div>
+                      <span> Assignments </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/exams"} 
+                      onClick={() => navigate("/exams")}
+                      className={`sidebar-menu-button ${location.pathname === "/exams" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-exams">
+                        <FileCheck className="h-5 w-5" />
+                      </div>
+                      <span> Exams & Tests </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/timetable"} 
+                      onClick={() => navigate("/timetable")}
+                      className={`sidebar-menu-button ${location.pathname === "/timetable" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-timetable">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <span> Timetable </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* Student Services */}
+                  <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Services
+                  </div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/library"} 
+                      onClick={() => navigate("/library")}
+                      className={`sidebar-menu-button ${location.pathname === "/library" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-library">
+                        <Library className="h-5 w-5" />
+                      </div>
+                      <span> Library </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/events"} 
+                      onClick={() => navigate("/events")}
+                      className={`sidebar-menu-button ${location.pathname === "/events" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-events">
+                        <CalendarIcon className="h-5 w-5" />
+                      </div>
+                      <span> Events & Activities </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/tuition"} 
+                      onClick={() => navigate("/tuition")}
+                      className={`sidebar-menu-button ${location.pathname === "/tuition" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-fees">
+                        <CreditCard className="h-5 w-5" />
+                      </div>
+                      <span> Pay Fees </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/scholarships"} 
+                      onClick={() => navigate("/scholarships")}
+                      className={`sidebar-menu-button ${location.pathname === "/scholarships" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-scholarships">
+                        <Award className="h-5 w-5" />
+                      </div>
+                      <span> Scholarships </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* Communication */}
+                  <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Communication
+                  </div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/messages"} 
+                      onClick={() => navigate("/messages")}
+                      className={`sidebar-menu-button ${location.pathname === "/messages" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-messages">
+                        <MessageSquare className="h-5 w-5" />
+                      </div>
+                      <span> Messages </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/notifications"} 
+                      onClick={() => navigate("/notifications")}
+                      className={`sidebar-menu-button ${location.pathname === "/notifications" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-notifications">
+                        <Bell className="h-5 w-5" />
+                      </div>
+                      <span> Notifications </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/announcements"} 
+                      onClick={() => navigate("/announcements")}
+                      className={`sidebar-menu-button ${location.pathname === "/announcements" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-announcements">
+                        <AlertCircle className="h-5 w-5" />
+                      </div>
+                      <span> Announcements </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* Analytics & Reports */}
+                  <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Analytics
+                  </div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/reports"} 
+                      onClick={() => navigate("/reports")}
+                      className={`sidebar-menu-button ${location.pathname === "/reports" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-reports">
+                        <BarChart3 className="h-5 w-5" />
+                      </div>
+                      <span> Reports </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/analytics"} 
+                      onClick={() => navigate("/analytics")}
+                      className={`sidebar-menu-button ${location.pathname === "/analytics" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-analytics">
+                        <PieChart className="h-5 w-5" />
+                      </div>
+                      <span> Analytics </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/performance"} 
+                      onClick={() => navigate("/performance")}
+                      className={`sidebar-menu-button ${location.pathname === "/performance" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-performance">
+                        <Activity className="h-5 w-5" />
+                      </div>
+                      <span> Performance </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* AI Features Section */}
+                  <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    AI Features
+                  </div>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/ai-features"} 
+                      onClick={() => navigate("/ai-features")}
+                      className={`sidebar-menu-button ${location.pathname === "/ai-features" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-ai-features">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <span> AI Features </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/ai-projects"} 
+                      onClick={() => navigate("/ai-projects")}
+                      className={`sidebar-menu-button ${location.pathname === "/ai-projects" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-ai-projects">
+                        <Code className="h-5 w-5" />
+                      </div>
+                      <span> AI Projects </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/ai-tutor"} 
+                      onClick={() => navigate("/ai-tutor")}
+                      className={`sidebar-menu-button ${location.pathname === "/ai-tutor" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-ai-tutor">
+                        <GraduationCap className="h-5 w-5" />
+                      </div>
+                      <span> AI Tutor </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  {/* User Account Section */}
+                  <SidebarSeparator className="sidebar-separator" />
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Account
+                  </div>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={location.pathname === "/profile"} 
@@ -182,90 +478,65 @@ const AppContent = () => {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      isActive={location.pathname === "/ai-features"} 
-                      onClick={() => navigate("/ai-features")}
-                      className={`sidebar-menu-button ${location.pathname === "/ai-features" ? 'active' : ''}`}
+                      isActive={location.pathname === "/help"} 
+                      onClick={() => navigate("/help")}
+                      className={`sidebar-menu-button ${location.pathname === "/help" ? 'active' : ''}`}
                     > 
-                      <div className="icon-container icon-ai-features">
-                        <Sparkles className="h-5 w-5" />
+                      <div className="icon-container icon-help">
+                        <HelpCircle className="h-5 w-5" />
                       </div>
-                      <span> AI Features </span>
+                      <span> Help & Support </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  
+                  {/* Authentication Section */}
+                  <SidebarSeparator className="sidebar-separator" />
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      isActive={location.pathname === "/ai-projects"} 
-                      onClick={() => navigate("/ai-projects")}
-                      className={`sidebar-menu-button ${location.pathname === "/ai-projects" ? 'active' : ''}`}
+                      isActive={location.pathname === "/auth"} 
+                      onClick={() => navigate("/auth")}
+                      className={`sidebar-menu-button ${location.pathname === "/auth" ? 'active' : ''}`}
                     > 
-                      <div className="icon-container icon-ai-projects">
-                        <Code className="h-5 w-5" />
+                      <div className="icon-container icon-signin">
+                        <LogIn className="h-5 w-5" />
                       </div>
-                      <span> AI Projects </span>
+                      <span> {user ? 'Account' : 'Sign In'} </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                </>
-              )}
-              {!user && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={() => navigate("/auth")}
-                    className="sidebar-menu-button"
-                  > 
-                    <div className="icon-container icon-signin">
-                      <LogIn className="h-5 w-5" />
-                    </div>
-                    <span> Sign In </span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
-        <div className="main-content-area dashboard-container" style={{marginLeft: '260px', width: 'calc(100% - 260px)', height: '100vh', paddingLeft: '0', paddingRight: '0'}}>
-          <div className="relative w-full h-full overflow-hidden">
-            {/* Enhanced background decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              {/* Light mode decorative elements */}
-              <div className="light-mode-decoration absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl"></div>
-              <div className="light-mode-decoration absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"></div>
-              <div className="light-mode-decoration absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl"></div>
-              
-              {/* Dark mode decorative elements */}
-              <div className="dark-mode-decoration absolute -top-32 -right-24 w-80 h-80 rounded-full blur-3xl"></div>
-              <div className="dark-mode-decoration absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"></div>
-              <div className="dark-mode-decoration absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl"></div>
+
+                </SidebarMenu>
+              </SidebarContent>
             </div>
-            
-            {/* Main content container */}
-            <div className="relative z-10 w-full h-full p-0">
-              <div className="w-full h-full rounded-xl shadow-2xl dashboard-content">
-                <Routes>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/" element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
-                  <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
-                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                  <Route path="/tuition" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
-                  <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                  <Route path="/ai-features" element={<ProtectedRoute><AIFeatures /></ProtectedRoute>} />
-                  <Route path="/ai-projects" element={<ProtectedRoute><AIProjects /></ProtectedRoute>} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-            </div>
+          
+          {/* Main content area */}
+          <div className="flex-1 h-full overflow-hidden">
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+              <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/tuition" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
+              <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
+              <Route path="/exams" element={<ProtectedRoute><Exams /></ProtectedRoute>} />
+              <Route path="/timetable" element={<ProtectedRoute><Timetable /></ProtectedRoute>} />
+              <Route path="/ai-features" element={<ProtectedRoute><AIFeatures /></ProtectedRoute>} />
+              <Route path="/ai-projects" element={<ProtectedRoute><AIProjects /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </div>
         </div>
         <AIChatbot />
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 };
 

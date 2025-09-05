@@ -42,6 +42,9 @@ router.post('/register', [
   body('password').isLength({ min: 6 }),
   body('firstName').trim().notEmpty(),
   body('lastName').trim().notEmpty(),
+  body('role').optional().isIn(['student', 'faculty', 'hod', 'admin', 'staff']),
+  body('course').optional().trim(),
+  body('branch').optional().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -53,7 +56,7 @@ router.post('/register', [
       });
     }
 
-    const { email, password, firstName, lastName, studentId, phone } = req.body;
+    const { email, password, firstName, lastName, studentId, phone, role, course, branch } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -65,6 +68,14 @@ router.post('/register', [
       });
     }
 
+    // Validate role-based requirements
+    if (['student', 'faculty', 'hod'].includes(role) && (!course || !branch)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Course and Branch are required for students, faculty, and HOD',
+      });
+    }
+
     // Create user
     const user = await User.create({
       email,
@@ -73,7 +84,9 @@ router.post('/register', [
       lastName,
       studentId,
       phone,
-      role: 'student',
+      role: role || 'student',
+      course,
+      branch,
     });
 
     // Generate JWT token
@@ -89,6 +102,8 @@ router.post('/register', [
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          course: user.course,
+          branch: user.branch,
         },
         token,
       },
@@ -154,6 +169,8 @@ router.post('/login', [
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          course: user.course,
+          branch: user.branch,
         },
         token,
       },
@@ -200,6 +217,8 @@ router.get('/me', protect, async (req, res) => {
           firstName: req.user.firstName,
           lastName: req.user.lastName,
           role: req.user.role,
+          course: req.user.course,
+          branch: req.user.branch,
         },
       },
     });
@@ -229,6 +248,22 @@ router.post('/send-otp', [
 
     const { email } = req.body;
 
+    // Check if user exists and has admin privileges
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    if (!['admin', 'faculty', 'hod'].includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.',
+      });
+    }
+
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -242,18 +277,29 @@ router.post('/send-otp', [
 
     // Send OTP via email
     try {
-      await sendOTP(email, otp);
+      const emailResult = await sendOTP(email, otp);
+      console.log('📧 Admin OTP email sent successfully:', emailResult.messageId);
     } catch (emailError) {
-      console.error('Email sending error:', emailError);
-      // Continue anyway as OTP is stored
+      console.error('❌ Email sending error:', emailError);
+      // Delete the stored OTP if email fails
+      await AdminOTP.deleteOne({ email });
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to send OTP email. Please try again.',
+      });
     }
 
     res.json({
       success: true,
-      message: 'OTP sent successfully',
+      message: 'OTP sent successfully to your email',
+      data: {
+        email: email,
+        expiresIn: '10 minutes',
+        role: user.role
+      }
     });
   } catch (error) {
-    console.error('Send OTP error:', error);
+    console.error('❌ Send OTP error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error sending OTP',
@@ -434,6 +480,117 @@ router.post('/change-password', [
     res.status(500).json({
       success: false,
       error: 'Server error changing password',
+    });
+  }
+});
+
+// @desc    Admin login (password or OTP)
+// @route   POST /api/auth/admin-login
+// @access  Public
+router.post('/admin-login', [
+  body('email').isEmail().normalizeEmail(),
+  body('password').optional(),
+  body('otp').optional(),
+  body('loginMethod').isIn(['password', 'otp']),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation error',
+        details: errors.array(),
+      });
+    }
+
+    const { email, password, otp, loginMethod } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
+    }
+
+    // Check if user has admin privileges
+    if (!['admin', 'faculty', 'hod'].includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.',
+      });
+    }
+
+    let isAuthenticated = false;
+
+    if (loginMethod === 'password') {
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Password is required for password login',
+        });
+      }
+      // Verify password
+      isAuthenticated = await user.comparePassword(password);
+    } else if (loginMethod === 'otp') {
+      if (!otp) {
+        return res.status(400).json({
+          success: false,
+          error: 'OTP is required for OTP login',
+        });
+      }
+      // Verify OTP
+      const otpData = await AdminOTP.findOne({
+        email,
+        otp,
+        expiresAt: { $gt: new Date() }
+      });
+
+      if (!otpData) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired OTP',
+        });
+      }
+
+      // Delete used OTP
+      await AdminOTP.deleteOne({ email });
+      isAuthenticated = true;
+    }
+
+    if (!isAuthenticated) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+      });
+    }
+
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Admin login successful',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          course: user.course,
+          branch: user.branch,
+        },
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error during admin login',
     });
   }
 });
