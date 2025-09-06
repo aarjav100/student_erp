@@ -4,17 +4,18 @@ import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: 'student' | 'faculty' | 'hod' | 'admin' | 'staff';
+  firstName?: string;
+  lastName?: string;
+  role: 'student' | 'teacher' | 'admin';
+  status: 'pending' | 'approved' | 'rejected';
   studentId?: string;
   phone?: string;
   course?: string;
   branch?: string;
   program?: string;
   yearLevel?: number;
-  status?: string;
   // Optional profile fields used across the app
   profileImage?: string;
   address?: string;
@@ -22,12 +23,14 @@ interface User {
   emergencyContact?: string;
   bio?: string;
   passwordChangedAt?: string;
+  createdAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string, role?: string, course?: string, branch?: string) => Promise<{ error: string | null }>;
+  signUp: (name: string, email: string, password: string, testId?: string, role?: string, course?: string) => Promise<{ error: string | null; message?: string }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   adminSignIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -47,6 +50,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -55,9 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for existing token on app load
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUser(token);
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      fetchUser(storedToken);
     } else {
       setLoading(false);
     }
@@ -65,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = async (token: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -74,7 +79,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.data.user);
+        const userData = data.data;
+        // Convert backend user format to frontend format
+        setUser({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          firstName: userData.name.split(' ')[0],
+          lastName: userData.name.split(' ').slice(1).join(' '),
+          role: userData.role,
+          status: userData.status,
+          createdAt: userData.createdAt
+        });
       } else {
         // Token is invalid, remove it
         localStorage.removeItem('token');
@@ -87,37 +103,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, studentId?: string, phone?: string, role?: string, course?: string, branch?: string) => {
+  const signUp = async (name: string, email: string, password: string, testId?: string, role?: string, course?: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name,
           email,
           password,
-          firstName,
-          lastName,
-          studentId,
-          phone,
+          testId,
           role,
           course,
-          branch,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('token', data.data.token);
-        setUser(data.data.user);
         toast({
           title: "Success",
-          description: "Account created successfully!",
+          description: data.message || "Account created successfully! Awaiting approval.",
         });
-        navigate('/');
-        return { error: null };
+        return { error: null, message: data.message };
       } else {
         return { error: data.error || 'Registration failed' };
       }
@@ -144,7 +154,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         localStorage.setItem('token', data.data.token);
-        setUser(data.data.user);
+        setToken(data.data.token);
+        const userData = data.data.user;
+        // Convert backend user format to frontend format
+        setUser({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          firstName: userData.name.split(' ')[0],
+          lastName: userData.name.split(' ').slice(1).join(' '),
+          role: userData.role,
+          status: userData.status,
+          createdAt: userData.createdAt
+        });
         toast({
           title: "Success",
           description: "Welcome back!",
@@ -179,6 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminUser');
       setUser(null);
+      setToken(null);
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -204,6 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok && data.data.user.role === 'admin') {
         localStorage.setItem('token', data.data.token);
+        setToken(data.data.token);
         setUser(data.data.user);
         toast({
           title: "Success",
@@ -257,6 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         localStorage.setItem('token', data.data.token);
+        setToken(data.data.token);
         setUser(data.data.user);
         toast({
           title: "Success",
@@ -275,6 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    token,
     loading,
     signUp,
     signIn,

@@ -24,6 +24,8 @@ import Exams from "./pages/Exams";
 import Timetable from "./pages/Timetable";
 import AIFeatures from "./pages/AIFeatures";
 import AIProjects from "./pages/AIProjects";
+import AdminPanel from "./pages/AdminPanel";
+import ApprovalManagement from "./pages/ApprovalManagement";
 import Dashboard from "./components/Dashboard/Dashboard";
 import AIChatbot from "./components/AI/AIChatbot";
 import {
@@ -80,7 +82,8 @@ import {
   AlertCircle,
   Info,
   Sun,
-  Moon
+  Moon,
+  UserCheck
 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -510,6 +513,40 @@ const AppContent = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
+                  {/* Admin Section */}
+                  {(user?.role === 'admin' || user?.role === 'teacher') && (
+                    <>
+                      <SidebarSeparator className="sidebar-separator" />
+                      <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        Administration
+                      </div>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          isActive={location.pathname === "/admin-panel"} 
+                          onClick={() => navigate("/admin-panel")}
+                          className={`sidebar-menu-button ${location.pathname === "/admin-panel" ? 'active' : ''}`}
+                        > 
+                          <div className="icon-container icon-admin">
+                            <Shield className="h-5 w-5" />
+                          </div>
+                          <span> Admin Panel </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          isActive={location.pathname === "/approvals"} 
+                          onClick={() => navigate("/approvals")}
+                          className={`sidebar-menu-button ${location.pathname === "/approvals" ? 'active' : ''}`}
+                        > 
+                          <div className="icon-container icon-approvals">
+                            <UserCheck className="h-5 w-5" />
+                          </div>
+                          <span> Approvals </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </>
+                  )}
+
                   {/* User Account Section */}
                   <SidebarSeparator className="sidebar-separator" />
                   <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -593,6 +630,8 @@ const AppContent = () => {
               <Route path="/timetable" element={<ProtectedRoute><Timetable /></ProtectedRoute>} />
               <Route path="/ai-features" element={<ProtectedRoute><AIFeatures /></ProtectedRoute>} />
               <Route path="/ai-projects" element={<ProtectedRoute><AIProjects /></ProtectedRoute>} />
+              <Route path="/admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+              <Route path="/approvals" element={<ProtectedRoute><ApprovalManagement /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

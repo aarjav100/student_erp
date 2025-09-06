@@ -1,6 +1,7 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
+// @desc    Protect routes - verify JWT token
 export const protect = async (req, res, next) => {
   let token;
 
@@ -12,23 +13,29 @@ export const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from database
-      const user = await User.findById(decoded.userId).select('-password');
+      // Get user from token
+      req.user = await User.findById(decoded.id).select('-password');
 
-      if (!user) {
+      if (!req.user) {
         return res.status(401).json({
           success: false,
-          error: 'Not authorized to access this route',
+          error: "Not authorized, user not found"
         });
       }
 
-      req.user = user;
+      // Check if user is approved
+      if (req.user.status !== 'approved') {
+        return res.status(403).json({
+          success: false,
+          error: "Account not approved"
+        });
+      }
+
       next();
     } catch (error) {
-      console.error('Auth middleware error:', error);
       return res.status(401).json({
         success: false,
-        error: 'Not authorized to access this route',
+        error: "Not authorized, token failed"
       });
     }
   }
@@ -36,40 +43,95 @@ export const protect = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({
       success: false,
-      error: 'Not authorized to access this route, no token',
+      error: "Not authorized, no token"
     });
   }
 };
 
-export const admin = async (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+// @desc    Grant access to specific roles
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: `User role ${req.user.role} is not authorized to access this route`
+      });
+    }
     next();
-  } else {
+  };
+};
+
+// @desc    Admin only access
+export const adminOnly = (req, res, next) => {
+  if (req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      error: 'Not authorized as admin',
+      error: "Access denied. Admin privileges required."
+    });
+  }
+  next();
+};
+
+// @desc    Teacher or Admin access
+export const teacherOrAdmin = (req, res, next) => {
+  if (!['teacher', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({
+      success: false,
+      error: "Access denied. Teacher or Admin privileges required."
+    });
+  }
+  next();
+};
+
+// @desc    Protect routes for approval system - allows admin/teacher even if not approved
+export const protectApproval = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from token
+      req.user = await User.findById(decoded.id).select('-password');
+
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: "Not authorized, user not found"
+        });
+      }
+
+      // For approval system, allow admin/teacher access even if not approved
+      if (['admin', 'teacher'].includes(req.user.role)) {
+        next();
+        return;
+      }
+
+      // For other roles, check if approved
+      if (req.user.status !== 'approved') {
+        return res.status(403).json({
+          success: false,
+          error: "Account not approved"
+        });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        error: "Not authorized, token failed"
+      });
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: "Not authorized, no token"
     });
   }
 };
-
-export const student = async (req, res, next) => {
-  if (req.user && req.user.role === 'student') {
-    next();
-  } else {
-    return res.status(403).json({
-      success: false,
-      error: 'Not authorized as student',
-    });
-  }
-};
-
-export const teacher = async (req, res, next) => {
-  if (req.user && req.user.role === 'teacher') {
-    next();
-  } else {
-    return res.status(403).json({
-      success: false,
-      error: 'Not authorized as teacher',
-    });
-  }
-}; 

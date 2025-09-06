@@ -12,9 +12,11 @@ import { dirname, join } from 'path';
 import connectDB from './config/database.js';
 
 // Import routes
-import authRoutes from './routes/auth.js';
+import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/users.js';
 import dashboardRoutes from './routes/dashboard.js';
+import adminRoutes from './routes/adminRoutes.js';
+import approvalRoutes from './routes/approvalRoutes.js';
 // Temporarily commented out until MongoDB models are implemented
 // import courseRoutes from './routes/courses.js';
 // import enrollmentRoutes from './routes/enrollments.js';
@@ -22,7 +24,6 @@ import dashboardRoutes from './routes/dashboard.js';
 // import attendanceRoutes from './routes/attendance.js';
 // import feesRoutes from './routes/fees.js';
 // import messageRoutes from './routes/messages.js';
-// import adminRoutes from './routes/admin.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -59,11 +60,14 @@ app.use(cors({
     'http://localhost:5173', 
     'http://localhost:8080', 
     'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
     process.env.FRONTEND_URL || 'https://your-frontend-url.vercel.app'
   ].filter(Boolean),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
 
 // Rate limiting
@@ -127,6 +131,8 @@ app.get('/socket.io/*', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/approvals', approvalRoutes);
 // Temporarily commented out until MongoDB models are implemented
 // app.use('/api/courses', courseRoutes);
 // app.use('/api/enrollments', enrollmentRoutes);
@@ -134,7 +140,6 @@ app.use('/api/dashboard', dashboardRoutes);
 // app.use('/api/attendance', attendanceRoutes);
 // app.use('/api/fees', feesRoutes);
 // app.use('/api/messages', messageRoutes);
-// app.use('/api/admin', adminRoutes);
 
 // Serve static files (if any)
 app.use('/uploads', express.static(join(__dirname, 'uploads')));

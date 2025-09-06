@@ -1,154 +1,81 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6,
-  },
-  firstName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  lastName: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  studentId: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-  phone: {
-    type: String,
-    trim: true,
-  },
-  dateOfBirth: {
-    type: Date,
-  },
-  enrollmentDate: {
-    type: Date,
-    default: Date.now,
-  },
-  program: {
-    type: String,
-    trim: true,
-  },
-  yearLevel: {
-    type: Number,
-    default: 1,
-    min: 1,
-    max: 6,
-  },
-  status: {
-    type: String,
-    enum: ['active', 'inactive', 'suspended'],
-    default: 'active',
-  },
-  role: {
-    type: String,
-    enum: ['student', 'faculty', 'hod', 'admin', 'staff'],
-    default: 'student',
-  },
-  course: {
-    type: String,
-    trim: true,
-    required: function() {
-      return ['student', 'faculty', 'hod'].includes(this.role);
-    }
-  },
-  branch: {
-    type: String,
-    trim: true,
-    required: function() {
-      return ['student', 'faculty', 'hod'].includes(this.role);
-    }
-  },
-  avatarUrl: {
-    type: String,
-  },
-  passwordChangedAt: {
-    type: Date,
-  },
-  passwordChangeHistory: [{
-    changedAt: {
-      type: Date,
-      required: true,
-    },
-    ipAddress: {
+const userSchema = new mongoose.Schema(
+  {
+    name: {
       type: String,
       required: true,
+      trim: true,
     },
-  }],
-  lastLoginIP: {
-    type: String,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      match: [/.+@.+\..+/, "Please enter a valid email address"],
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
+    role: {
+      type: String,
+      enum: ["student", "teacher", "faculty", "professor", "assistant-professor", "associate-professor", "admin", "staff", "librarian", "accountant", "hr", "registrar", "dean", "principal", "vice-principal", "coordinator", "counselor", "security", "maintenance", "guest"],
+      default: "student", // will be auto-detected at signup
+    },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    testId: {
+      type: String,
+      required: false,
+    },
+    approvalAuthority: {
+      type: String,
+      enum: ["admin", "registration_block", "faculty"],
+      required: true,
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    approvedAt: {
+      type: Date,
+      required: false,
+    },
+    rejectionReason: {
+      type: String,
+      required: false,
+    },
+    selectedRole: {
+      type: String,
+      required: false,
+    },
+    course: {
+      type: String,
+      required: false,
+    },
   },
-}, {
-  timestamps: true,
+  { timestamps: true }
+);
+
+// 🔑 Pre-save hook to hash password
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+// 🔑 Method to compare password at login
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Add password change tracking
-userSchema.methods.trackPasswordChange = async function() {
-  this.passwordChangedAt = Date.now();
-  this.passwordChangeHistory = this.passwordChangeHistory || [];
-  
-  // Keep only last 5 password changes for security
-  if (this.passwordChangeHistory.length >= 5) {
-    this.passwordChangeHistory.shift();
-  }
-  
-  this.passwordChangeHistory.push({
-    changedAt: new Date(),
-    ipAddress: this.lastLoginIP || 'unknown'
-  });
-  
-  await this.save();
-};
+const User = mongoose.model("User", userSchema);
 
-// Virtual for full name
-userSchema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.lastName}`;
-});
-
-// Ensure virtual fields are serialized
-userSchema.set('toJSON', {
-  virtuals: true,
-  transform: function(doc, ret) {
-    delete ret.password;
-    return ret;
-  }
-});
-
-const User = mongoose.model('User', userSchema);
-
-export default User; 
+export default User;

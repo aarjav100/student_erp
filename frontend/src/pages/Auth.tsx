@@ -6,22 +6,19 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Eye, EyeOff, Lock, Mail, User, Phone, Hash, Shield, BookOpen, Home, Calendar, FileText, MessageSquare, CreditCard, Settings as SettingsIcon, TrendingUp } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, Lock, Mail, User, Phone, Hash, Shield, FileText, MessageSquare, CreditCard, Settings as SettingsIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [studentId, setStudentId] = useState('');
-  const [phone, setPhone] = useState('');
-  
-  // New signup fields
-  const [role, setRole] = useState('student');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [testId, setTestId] = useState('');
+  const [detectedRole, setDetectedRole] = useState('');
+  const [role, setRole] = useState('');
   const [course, setCourse] = useState('');
-  const [branch, setBranch] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -33,27 +30,214 @@ const Auth = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   
-  // Admin OTP state
-  const [adminOtpSent, setAdminOtpSent] = useState(false);
   
-  const { signIn, signUp, adminSignIn, adminOTP, sendOTP } = useAuth();
+  const { signIn, signUp, sendOTP } = useAuth();
   const { toast } = useToast();
 
-  const [tab, setTab] = useState<'signin' | 'signup' | 'admin'>('signin');
-  // Admin 2FA state
-  const [adminStep, setAdminStep] = useState<'login' | 'otp'>('login');
-  const [adminOtp, setAdminOtp] = useState('');
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [adminTrust, setAdminTrust] = useState(false);
-  const [adminEmail, setAdminEmail] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
+  const [tab, setTab] = useState<'signin' | 'signup'>('signin');
+
+  // Role and Course options
+  const roleOptions = [
+    { value: 'student', label: 'Student' },
+    { value: 'teacher', label: 'Teacher' },
+    { value: 'faculty', label: 'Faculty' },
+    { value: 'professor', label: 'Professor' },
+    { value: 'assistant-professor', label: 'Assistant Professor' },
+    { value: 'associate-professor', label: 'Associate Professor' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'staff', label: 'Staff' },
+    { value: 'librarian', label: 'Librarian' },
+    { value: 'accountant', label: 'Accountant' },
+    { value: 'hr', label: 'HR Personnel' },
+    { value: 'registrar', label: 'Registrar' },
+    { value: 'dean', label: 'Dean' },
+    { value: 'principal', label: 'Principal' },
+    { value: 'vice-principal', label: 'Vice Principal' },
+    { value: 'coordinator', label: 'Coordinator' },
+    { value: 'counselor', label: 'Counselor' },
+    { value: 'security', label: 'Security Personnel' },
+    { value: 'maintenance', label: 'Maintenance Staff' },
+    { value: 'guest', label: 'Guest Faculty' }
+  ];
+
+  const courseOptions = [
+    // Engineering Courses
+    { value: 'btech-cs', label: 'B.Tech Computer Science' },
+    { value: 'btech-it', label: 'B.Tech Information Technology' },
+    { value: 'btech-ece', label: 'B.Tech Electronics & Communication' },
+    { value: 'btech-me', label: 'B.Tech Mechanical Engineering' },
+    { value: 'btech-ce', label: 'B.Tech Civil Engineering' },
+    { value: 'btech-ee', label: 'B.Tech Electrical Engineering' },
+    { value: 'btech-cse', label: 'B.Tech Computer Science & Engineering' },
+    { value: 'btech-ae', label: 'B.Tech Aerospace Engineering' },
+    { value: 'btech-biotech', label: 'B.Tech Biotechnology' },
+    { value: 'btech-chemical', label: 'B.Tech Chemical Engineering' },
+    { value: 'btech-textile', label: 'B.Tech Textile Engineering' },
+    { value: 'btech-food', label: 'B.Tech Food Technology' },
+    { value: 'btech-agricultural', label: 'B.Tech Agricultural Engineering' },
+    { value: 'btech-mining', label: 'B.Tech Mining Engineering' },
+    { value: 'btech-metallurgy', label: 'B.Tech Metallurgical Engineering' },
+    { value: 'btech-industrial', label: 'B.Tech Industrial Engineering' },
+    { value: 'btech-production', label: 'B.Tech Production Engineering' },
+    { value: 'btech-automobile', label: 'B.Tech Automobile Engineering' },
+    { value: 'btech-marine', label: 'B.Tech Marine Engineering' },
+    { value: 'btech-petroleum', label: 'B.Tech Petroleum Engineering' },
+    
+    // Management Courses
+    { value: 'mba', label: 'MBA (Master of Business Administration)' },
+    { value: 'bba', label: 'BBA (Bachelor of Business Administration)' },
+    { value: 'mba-finance', label: 'MBA Finance' },
+    { value: 'mba-marketing', label: 'MBA Marketing' },
+    { value: 'mba-hr', label: 'MBA Human Resources' },
+    { value: 'mba-operations', label: 'MBA Operations' },
+    { value: 'mba-international', label: 'MBA International Business' },
+    { value: 'mba-digital', label: 'MBA Digital Marketing' },
+    { value: 'mba-healthcare', label: 'MBA Healthcare Management' },
+    { value: 'mba-tourism', label: 'MBA Tourism & Hospitality' },
+    { value: 'pgdm', label: 'PGDM (Post Graduate Diploma in Management)' },
+    { value: 'pgp', label: 'PGP (Post Graduate Program)' },
+    
+    // Computer Applications
+    { value: 'bca', label: 'BCA (Bachelor of Computer Applications)' },
+    { value: 'mca', label: 'MCA (Master of Computer Applications)' },
+    { value: 'bsc-cs', label: 'B.Sc Computer Science' },
+    { value: 'msc-cs', label: 'M.Sc Computer Science' },
+    { value: 'bsc-it', label: 'B.Sc Information Technology' },
+    { value: 'msc-it', label: 'M.Sc Information Technology' },
+    { value: 'btech-ai', label: 'B.Tech Artificial Intelligence' },
+    { value: 'btech-cyber', label: 'B.Tech Cybersecurity' },
+    { value: 'btech-data', label: 'B.Tech Data Science' },
+    { value: 'btech-cloud', label: 'B.Tech Cloud Computing' },
+    
+    // Medical & Health Sciences
+    { value: 'mbbs', label: 'MBBS (Bachelor of Medicine & Surgery)' },
+    { value: 'bds', label: 'BDS (Bachelor of Dental Surgery)' },
+    { value: 'bpharm', label: 'B.Pharm (Bachelor of Pharmacy)' },
+    { value: 'mpharm', label: 'M.Pharm (Master of Pharmacy)' },
+    { value: 'bpt', label: 'BPT (Bachelor of Physiotherapy)' },
+    { value: 'bsc-nursing', label: 'B.Sc Nursing' },
+    { value: 'msc-nursing', label: 'M.Sc Nursing' },
+    { value: 'bsc-medical', label: 'B.Sc Medical Technology' },
+    
+    // Arts & Humanities
+    { value: 'ba', label: 'BA (Bachelor of Arts)' },
+    { value: 'ma', label: 'MA (Master of Arts)' },
+    { value: 'ba-english', label: 'BA English Literature' },
+    { value: 'ba-history', label: 'BA History' },
+    { value: 'ba-psychology', label: 'BA Psychology' },
+    { value: 'ba-sociology', label: 'BA Sociology' },
+    { value: 'ba-economics', label: 'BA Economics' },
+    { value: 'ba-political', label: 'BA Political Science' },
+    { value: 'ba-philosophy', label: 'BA Philosophy' },
+    { value: 'ba-journalism', label: 'BA Journalism & Mass Communication' },
+    
+    // Science Courses
+    { value: 'bsc', label: 'B.Sc (Bachelor of Science)' },
+    { value: 'msc', label: 'M.Sc (Master of Science)' },
+    { value: 'bsc-physics', label: 'B.Sc Physics' },
+    { value: 'bsc-chemistry', label: 'B.Sc Chemistry' },
+    { value: 'bsc-mathematics', label: 'B.Sc Mathematics' },
+    { value: 'bsc-biology', label: 'B.Sc Biology' },
+    { value: 'bsc-botany', label: 'B.Sc Botany' },
+    { value: 'bsc-zoology', label: 'B.Sc Zoology' },
+    { value: 'bsc-geology', label: 'B.Sc Geology' },
+    { value: 'bsc-environmental', label: 'B.Sc Environmental Science' },
+    
+    // Commerce & Finance
+    { value: 'bcom', label: 'B.Com (Bachelor of Commerce)' },
+    { value: 'mcom', label: 'M.Com (Master of Commerce)' },
+    { value: 'bcom-hons', label: 'B.Com (Hons)' },
+    { value: 'ca', label: 'CA (Chartered Accountant)' },
+    { value: 'cfa', label: 'CFA (Chartered Financial Analyst)' },
+    { value: 'cma', label: 'CMA (Cost & Management Accountant)' },
+    { value: 'bsc-finance', label: 'B.Sc Finance' },
+    { value: 'msc-finance', label: 'M.Sc Finance' },
+    
+    // Law
+    { value: 'llb', label: 'LLB (Bachelor of Laws)' },
+    { value: 'llm', label: 'LLM (Master of Laws)' },
+    { value: 'ba-llb', label: 'BA LLB (Integrated)' },
+    { value: 'bcom-llb', label: 'B.Com LLB (Integrated)' },
+    
+    // Education
+    { value: 'bed', label: 'B.Ed (Bachelor of Education)' },
+    { value: 'med', label: 'M.Ed (Master of Education)' },
+    { value: 'diet', label: 'DIET (Diploma in Elementary Education)' },
+    { value: 'bsc-ed', label: 'B.Sc Education' },
+    
+    // Architecture & Design
+    { value: 'barch', label: 'B.Arch (Bachelor of Architecture)' },
+    { value: 'march', label: 'M.Arch (Master of Architecture)' },
+    { value: 'bdes', label: 'B.Des (Bachelor of Design)' },
+    { value: 'mdes', label: 'M.Des (Master of Design)' },
+    { value: 'bfa', label: 'BFA (Bachelor of Fine Arts)' },
+    { value: 'mfa', label: 'MFA (Master of Fine Arts)' },
+    
+    // Agriculture
+    { value: 'bsc-agriculture', label: 'B.Sc Agriculture' },
+    { value: 'msc-agriculture', label: 'M.Sc Agriculture' },
+    { value: 'btech-agriculture', label: 'B.Tech Agriculture' },
+    { value: 'bsc-horticulture', label: 'B.Sc Horticulture' },
+    
+    // Research & Doctoral
+    { value: 'phd', label: 'PhD (Doctor of Philosophy)' },
+    { value: 'phd-cs', label: 'PhD Computer Science' },
+    { value: 'phd-management', label: 'PhD Management' },
+    { value: 'phd-engineering', label: 'PhD Engineering' },
+    { value: 'phd-science', label: 'PhD Science' },
+    
+    // Diploma & Certificate
+    { value: 'diploma', label: 'Diploma Course' },
+    { value: 'diploma-engineering', label: 'Diploma in Engineering' },
+    { value: 'diploma-management', label: 'Diploma in Management' },
+    { value: 'diploma-computer', label: 'Diploma in Computer Applications' },
+    { value: 'certificate', label: 'Certificate Course' },
+    { value: 'certificate-programming', label: 'Certificate in Programming' },
+    { value: 'certificate-digital', label: 'Certificate in Digital Marketing' },
+    { value: 'certificate-graphic', label: 'Certificate in Graphic Design' }
+  ];
+
+
+  // Function to detect role from email
+  const detectRoleFromEmail = (email) => {
+    const emailLower = email.toLowerCase();
+    
+    if (emailLower.includes('admin') && emailLower.includes('@college.edu')) {
+      return 'admin';
+    }
+    if (emailLower.includes('@teacher.college.edu') || 
+        emailLower.includes('@faculty.college.edu') ||
+        emailLower.includes('@prof.college.edu')) {
+      return 'teacher';
+    }
+    if (emailLower.includes('@student.college.edu') || 
+        emailLower.includes('@college.edu')) {
+      return 'student';
+    }
+    
+    return 'student'; // Default fallback
+  };
+
+  // Function to check if test ID is required - No longer required for any role
+  const isTestIdRequired = (role) => {
+    return false; // Test ID is no longer required for any role
+  };
+
+  // Effect to detect role when email changes
+  useEffect(() => {
+    if (email) {
+      const role = detectRoleFromEmail(email);
+      setDetectedRole(role);
+    } else {
+      setDetectedRole('');
+    }
+  }, [email]);
 
   // Sample data for dropdowns
   const roles = [
     { value: 'student', label: 'Student' },
     { value: 'faculty', label: 'Faculty' },
     { value: 'hod', label: 'HOD' },
-    { value: 'admin', label: 'Admin' },
     { value: 'staff', label: 'Staff' }
   ];
 
@@ -81,13 +265,6 @@ const Auth = () => {
     { value: 'biotech', label: 'Biotechnology' }
   ];
 
-  useEffect(() => {
-    if (tab === 'admin' && document.cookie.includes('trusted_admin_device=1')) {
-      // Skip OTP, log in admin directly
-      toast({ title: 'Success', description: 'Trusted device: Admin login successful!' });
-      // Set admin session, redirect, etc.
-    }
-  }, [tab, toast]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,19 +302,40 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation for roles that require course and branch
-    if ((role === 'student' || role === 'faculty' || role === 'hod') && (!course || !branch)) {
+    if (!name || !email || !password || !confirmPassword || !role || !course) {
       toast({
         title: "Validation Error",
-        description: "Course and Branch are required for students, faculty, and HOD",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
+
+    // Check password confirmation
+    if (password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check password length
+    if (password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Test ID is no longer required for any role
     
     setLoading(true);
 
-    const { error } = await signUp(email, password, firstName, lastName, studentId || undefined, phone || undefined, role, course, branch);
+    const { error, message } = await signUp(name, email, password, testId, role, course);
 
     if (error) {
       toast({
@@ -145,76 +343,18 @@ const Auth = () => {
         description: error,
         variant: "destructive",
       });
+    } else if (message) {
+      toast({
+        title: "Success",
+        description: message,
+      });
     }
 
     setLoading(false);
   };
 
-  const handleAdminLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdminLoading(true);
-    
-    let error = null;
-    
-    if (adminStep === 'otp') {
-      // Handle admin OTP verification
-      const result = await adminOTP(adminEmail, adminOtp);
-      error = result?.error;
-      
-      if (!error && adminTrust) {
-        document.cookie = `trusted_admin_device=1; max-age=${30 * 24 * 60 * 60}; path=/; secure; samesite=strict`;
-      }
-    } else {
-      // Handle admin password login
-      const result = await adminSignIn(adminEmail, adminPassword);
-      error = result?.error;
-    }
-    
-    if (error) {
-      toast({ title: 'Error', description: error, variant: 'destructive' });
-    } else {
-      toast({ title: 'Success', description: 'Admin login successful!' });
-    }
-    
-    setAdminLoading(false);
-  };
 
-  const handleAdminOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdminLoading(true);
-    
-    const result = await adminOTP(adminEmail, adminOtp);
-    
-    if (result?.error) {
-      toast({ title: 'Error', description: result.error, variant: 'destructive' });
-    } else {
-      if (adminTrust) {
-        document.cookie = `trusted_admin_device=1; max-age=${30 * 24 * 60 * 60}; path=/; secure; samesite=strict`;
-      }
-      toast({ title: 'Success', description: 'Admin OTP verification successful!' });
-    }
-    
-    setAdminLoading(false);
-  };
 
-  const handleSendAdminOTP = async () => {
-    if (!adminEmail) {
-      toast({ title: 'Error', description: 'Please enter admin email first', variant: 'destructive' });
-      return;
-    }
-
-    setAdminLoading(true);
-    const result = await sendOTP(adminEmail);
-    
-    if (result?.error) {
-      toast({ title: 'Error', description: result.error, variant: 'destructive' });
-    } else {
-      setAdminOtpSent(true);
-      toast({ title: 'OTP Sent', description: 'Check your email for the admin verification code.' });
-    }
-    
-    setAdminLoading(false);
-  };
 
   const handleSendOTP = async () => {
     if (!email) {
@@ -241,23 +381,8 @@ const Auth = () => {
     setLoginMode('password');
   };
 
-  const resetAdminOTPLogin = () => {
-    setAdminOtpSent(false);
-    setAdminOtp('');
-    setAdminStep('login');
-  };
 
-  const switchToAdminPassword = () => {
-    setAdminStep('login');
-    setAdminOtpSent(false);
-    setAdminOtp('');
-  };
 
-  const switchToAdminOTP = () => {
-    setAdminStep('otp');
-    setAdminOtpSent(false);
-    setAdminOtp('');
-  };
 
   return (
     <div className="h-full w-full bg-gradient-to-b from-sky-100 via-sky-50 to-white p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -268,34 +393,14 @@ const Auth = () => {
           <p className="text-sm text-gray-600">Sign in to access your dashboard</p>
           </div>
 
-        {/* Quick Navigation */}
-        <div className="grid grid-cols-4 gap-2 mb-6">
-          <Link to="/" className="p-2 rounded-lg bg-white/70 backdrop-blur border border-white/60 hover:bg-white transition text-center">
-            <Home className="h-4 w-4 mx-auto mb-1"/>
-            <span className="text-xs">Home</span>
-            </Link>
-          <Link to="/dashboard" className="p-2 rounded-lg bg-white/70 backdrop-blur border border-white/60 hover:bg-white transition text-center">
-            <TrendingUp className="h-4 w-4 mx-auto mb-1"/>
-            <span className="text-xs">Dashboard</span>
-            </Link>
-          <Link to="/courses" className="p-2 rounded-lg bg-white/70 backdrop-blur border border-white/60 hover:bg-white transition text-center">
-            <BookOpen className="h-4 w-4 mx-auto mb-1"/>
-            <span className="text-xs">Courses</span>
-            </Link>
-          <Link to="/attendance" className="p-2 rounded-lg bg-white/70 backdrop-blur border border-white/60 hover:bg-white transition text-center">
-            <Calendar className="h-4 w-4 mx-auto mb-1"/>
-            <span className="text-xs">Attendance</span>
-            </Link>
-          </div>
 
         {/* Auth Card */}
         <Card className="bg-white/80 backdrop-blur-xl border border-white/70 shadow-xl rounded-2xl">
             <CardContent className="p-6">
-            <Tabs defaultValue="signin" className="w-full" onValueChange={v => setTab(v as 'signin' | 'signup' | 'admin')}>
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+            <Tabs defaultValue="signin" className="w-full" onValueChange={v => setTab(v as 'signin' | 'signup')}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
                 <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
-                <TabsTrigger value="admin" className="text-sm">Admin</TabsTrigger>
                 </TabsList>
                 
               {/* Sign In Form */}
@@ -446,115 +551,153 @@ const Auth = () => {
               {/* Sign Up Form */}
               <TabsContent value="signup" className="space-y-4">
                   <form onSubmit={handleSignUp} className="space-y-4">
-                  {/* Name Fields */}
-                  <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                          <Input
-                            id="firstName"
-                            placeholder="First name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required
-                        className="h-11"
-                          />
-                      </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                          <Input
-                            id="lastName"
-                            placeholder="Last name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required
-                        className="h-11"
-                          />
-                      </div>
-                    </div>
-
-                    {/* Role Selection */}
-                    <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                        <select
-                          id="role"
-                          value={role}
-                          onChange={(e) => setRole(e.target.value)}
+                  {/* Name Field */}
+                  <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="name"
+                          placeholder="Enter your full name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                           required
-                      className="w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          {roles.map((roleOption) => (
-                            <option key={roleOption.value} value={roleOption.value}>
-                              {roleOption.label}
-                            </option>
-                          ))}
-                        </select>
-                    </div>
-
-                  {/* Course and Branch Selection */}
-                    {(role === 'student' || role === 'faculty' || role === 'hod') && (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                        <Label htmlFor="course">Course</Label>
-                            <select
-                              id="course"
-                              value={course}
-                              onChange={(e) => setCourse(e.target.value)}
-                              required
-                          className="w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="">Select Course</option>
-                              {courses.map((courseOption) => (
-                                <option key={courseOption.value} value={courseOption.value}>
-                                  {courseOption.label}
-                                </option>
-                              ))}
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="branch">Branch</Label>
-                            <select
-                              id="branch"
-                              value={branch}
-                              onChange={(e) => setBranch(e.target.value)}
-                              required
-                          className="w-full h-11 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="">Select Branch</option>
-                              {branches.map((branchOption) => (
-                                <option key={branchOption.value} value={branchOption.value}>
-                                  {branchOption.label}
-                                </option>
-                              ))}
-                            </select>
+                          className="pl-10 h-11"
+                        />
                       </div>
                     </div>
-                  )}
 
-                  {/* Email and Password */}
+                    {/* Email Field */}
                     <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                      <Label htmlFor="signup-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                           id="signup-email"
                           type="email"
-                          placeholder="Enter your email"
+                          placeholder="Enter your college email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           required
-                      className="h-11"
+                          className="pl-10 h-11"
                         />
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Use any valid email address (e.g., yourname@gmail.com, yourname@yahoo.com, yourname@company.com)
+                      </p>
+                      {detectedRole && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Shield className="h-4 w-4 text-blue-500" />
+                          <span className="text-blue-600 font-medium">
+                            Detected Role: {detectedRole.charAt(0).toUpperCase() + detectedRole.slice(1)}
+                          </span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Test ID Field - Only show for admin/teacher roles */}
+                    {detectedRole && isTestIdRequired(detectedRole) && (
+                      <div className="space-y-2">
+                        <Label htmlFor="test-id">Test ID (Required for {detectedRole.charAt(0).toUpperCase() + detectedRole.slice(1)})</Label>
+                        <div className="relative">
+                          <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="test-id"
+                            type="text"
+                            placeholder="Enter test ID provided by Registration Block"
+                            value={testId}
+                            onChange={(e) => setTestId(e.target.value)}
+                            required
+                            className="pl-10 h-11"
+                          />
+                        </div>
+                        <p className="text-xs text-amber-600">
+                          Contact the Registration Block for the correct test ID for {detectedRole} role.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Password Field */}
                     <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                      <Label htmlFor="signup-password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                           id="signup-password"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="Create a password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
-                      className="h-11"
+                          className="pl-10 pr-10 h-11"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm Password Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="confirm-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Confirm your password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          className="pl-10 h-11"
                         />
                       </div>
+                      {confirmPassword && password !== confirmPassword && (
+                        <p className="text-xs text-red-500">Passwords do not match</p>
+                      )}
+                    </div>
+
+                    {/* Role Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <select 
+                        id="role"
+                        value={role} 
+                        onChange={(e) => setRole(e.target.value)} 
+                        required
+                        className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">Select your role</option>
+                        {roleOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Course Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="course">Select a course</Label>
+                      <select 
+                        id="course"
+                        value={course} 
+                        onChange={(e) => setCourse(e.target.value)} 
+                        required
+                        className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">Select a course</option>
+                        {courseOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                   <Button type="submit" className="w-full h-11" disabled={loading}>
                       {loading ? 'Creating account...' : 'Create Account'}
@@ -562,138 +705,6 @@ const Auth = () => {
                   </form>
                 </TabsContent>
                 
-              {/* Admin Form */}
-              <TabsContent value="admin" className="space-y-4">
-                  {/* Admin Login Mode Toggle */}
-                <div className="flex justify-center space-x-2">
-                    <button
-                      type="button"
-                      onClick={switchToAdminPassword}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        adminStep === 'login'
-                        ? 'bg-red-500 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      Password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={switchToAdminOTP}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        adminStep === 'otp'
-                        ? 'bg-red-500 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      OTP
-                    </button>
-                  </div>
-
-                  {adminStep === 'login' ? (
-                    <form onSubmit={handleAdminLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="admin-email">Admin Email</Label>
-                          <Input
-                            id="admin-email"
-                            type="email"
-                            placeholder="admin@erp.com"
-                            value={adminEmail}
-                            onChange={e => setAdminEmail(e.target.value)}
-                            required
-                        className="h-11"
-                          />
-                        </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="admin-password">Password</Label>
-                          <Input
-                            id="admin-password"
-                            type="password"
-                            placeholder="Enter admin password"
-                            value={adminPassword}
-                            onChange={e => setAdminPassword(e.target.value)}
-                            required
-                        className="h-11"
-                          />
-                        </div>
-                    <Button type="submit" className="w-full h-11 bg-red-600 hover:bg-red-700" disabled={adminLoading}>
-                        {adminLoading ? 'Verifying...' : 'Admin Login'}
-                      </Button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleAdminLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="admin-email-otp">Admin Email</Label>
-                          <Input
-                            id="admin-email-otp"
-                            type="email"
-                            placeholder="admin@erp.com"
-                            value={adminEmail}
-                            onChange={e => setAdminEmail(e.target.value)}
-                            required
-                        className="h-11"
-                          />
-                      </div>
-                      
-                      {!adminOtpSent ? (
-                        <Button
-                          type="button"
-                          onClick={handleSendAdminOTP}
-                          disabled={adminLoading || !adminEmail}
-                        className="w-full h-11 bg-red-500 hover:bg-red-600"
-                        >
-                          {adminLoading ? 'Sending OTP...' : 'Send Admin OTP'}
-                        </Button>
-                      ) : (
-                        <>
-                        <div className="space-y-2">
-                          <Label htmlFor="admin-otp">OTP Code</Label>
-                              <Input
-                                id="admin-otp"
-                                type="text"
-                                placeholder="Enter 6-digit OTP"
-                                value={adminOtp}
-                                onChange={e => setAdminOtp(e.target.value)}
-                                required
-                                maxLength={6}
-                            className="h-11"
-                              />
-                            </div>
-                        <div className="flex items-center space-x-2">
-                            <input
-                              id="admin-trust"
-                              type="checkbox"
-                              checked={adminTrust}
-                              onChange={e => setAdminTrust(e.target.checked)}
-                            className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                            />
-                          <Label htmlFor="admin-trust" className="text-sm text-gray-700">Trust this device for 30 days</Label>
-                          </div>
-                        <Button type="submit" className="w-full h-11 bg-red-600 hover:bg-red-700" disabled={adminLoading}>
-                            {adminLoading ? 'Verifying OTP...' : 'Verify Admin OTP'}
-                          </Button>
-                        <div className="flex justify-between">
-                            <button
-                              type="button"
-                              onClick={resetAdminOTPLogin}
-                            className="text-sm text-gray-600 hover:text-gray-800"
-                            >
-                              ← Back to Send OTP
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleSendAdminOTP}
-                              disabled={adminLoading}
-                            className="text-sm text-red-600 hover:text-red-800"
-                            >
-                              Resend OTP
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </form>
-                  )}
-                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
