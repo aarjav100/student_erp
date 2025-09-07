@@ -60,6 +60,60 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    // Profile fields
+    firstName: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+      required: false,
+    },
+    emergencyContact: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    studentId: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    yearLevel: {
+      type: Number,
+      required: false,
+      default: 1,
+    },
+    program: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    avatarUrl: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );

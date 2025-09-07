@@ -5,8 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import UserProfile from "@/components/UserProfile";
 import Index from "./pages/Index";
@@ -90,13 +93,105 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
-  const [darkMode, setDarkMode] = useState(false);
   
   // Sidebar slider states
-  const [volumeSlider, setVolumeSlider] = useState([70]);
-  const [brightnessSlider, setBrightnessSlider] = useState([80]);
   const [notificationsSlider, setNotificationsSlider] = useState([60]);
+  
+  // Notification states
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: "New Assignment Posted",
+      message: "CS101 - Assignment 3 has been posted. Due date: Dec 20, 2024",
+      type: "assignment",
+      time: "2 hours ago",
+      read: false,
+      priority: "high"
+    },
+    {
+      id: 2,
+      title: "Grade Updated",
+      message: "Your grade for CS101 Midterm has been updated to A-",
+      type: "grade",
+      time: "4 hours ago",
+      read: false,
+      priority: "medium"
+    },
+    {
+      id: 3,
+      title: "Class Cancelled",
+      message: "Math 201 class on Dec 15 has been cancelled",
+      type: "announcement",
+      time: "1 day ago",
+      read: true,
+      priority: "high"
+    },
+    {
+      id: 4,
+      title: "Payment Reminder",
+      message: "Tuition payment for Spring 2025 is due on Jan 15, 2025",
+      type: "payment",
+      time: "2 days ago",
+      read: true,
+      priority: "medium"
+    },
+    {
+      id: 5,
+      title: "Library Book Due",
+      message: "Your book 'Data Structures and Algorithms' is due tomorrow",
+      type: "library",
+      time: "3 days ago",
+      read: true,
+      priority: "low"
+    }
+  ]);
+  
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  
+  // Notification helper functions
+  const unreadCount = notifications.filter(n => !n.read).length;
+  
+  const markAsRead = (id: number) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  };
+  
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+  };
+  
+  const deleteNotification = (id: number) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
+  
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'assignment': return <FileCheck className="h-4 w-4" />;
+      case 'grade': return <Award className="h-4 w-4" />;
+      case 'announcement': return <AlertCircle className="h-4 w-4" />;
+      case 'payment': return <TrendingUp className="h-4 w-4" />;
+      case 'library': return <BookMarked className="h-4 w-4" />;
+      default: return <Bell className="h-4 w-4" />;
+    }
+  };
+  
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
   
   const navigate = (path: string) => {
     if (location.pathname !== path) {
@@ -106,64 +201,32 @@ const AppContent = () => {
   
   // Check if we're on the auth page
   const isAuthPage = location.pathname === "/auth";
-  
-  // Initialize theme on app mount - default to light mode
-  React.useEffect(() => {
-    // Check if theme preference is stored in localStorage
-    const savedTheme = localStorage.getItem('theme');
-    
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      // Default to light mode
-      setDarkMode(false);
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, []);
-
-  // Function to toggle theme
-  const toggleTheme = (checked: boolean) => {
-    setDarkMode(checked);
-    if (checked) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   return (
     <div className="h-screen w-full overflow-hidden">
       <SidebarProvider>
         <div className="flex h-full w-full">
           {/* Show sidebar on all pages - Force visibility */}
-          <div className="glassmorphism-sidebar w-64 flex-shrink-0 flex flex-col h-screen overflow-y-auto overflow-x-hidden" style={{display: 'flex', visibility: 'visible', opacity: 1, zIndex: 1000}}>
-              <SidebarHeader className="sidebar-header p-4">
+          <div className={`w-64 flex-shrink-0 flex flex-col h-screen overflow-y-auto overflow-x-hidden ${isDark ? 'sidebar-container' : 'glassmorphism-sidebar'}`} style={{display: 'flex', visibility: 'visible', opacity: 1, zIndex: 1000}}>
+              <SidebarHeader className={`sidebar-header p-4 ${isDark ? 'sidebar-header' : ''}`}>
                 <div className="flex items-center justify-between w-full mb-4">
-                  <span className="text-xl font-bold text-slate-100 drop-shadow-sm pl-2 pt-2 pb-2">Student ERP</span>
+                  <span className={`text-xl font-bold drop-shadow-sm pl-2 pt-2 pb-2 ${isDark ? 'text-white' : 'text-slate-100'}`}>Student ERP</span>
                   {user && <UserProfile />}
                 </div>
                 
                 {/* Theme Converter */}
-                <div className="flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 mb-4">
+                <div className={`flex items-center justify-between p-3 rounded-lg border mb-4 ${isDark ? 'bg-purple-900/30 border-purple-700' : 'bg-white/10 backdrop-blur-sm border-white/20'}`}>
                   <div className="flex items-center space-x-2">
-                    {darkMode ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-yellow-400" />}
+                    {isDark ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-yellow-400" />}
                     <div>
-                      <p className="text-xs font-medium text-slate-200">Theme</p>
-                      <p className="text-xs text-slate-400">
-                        {darkMode ? 'Dark mode' : 'Light mode'}
+                      <p className={`text-xs font-medium ${isDark ? 'text-gray-200' : 'text-slate-200'}`}>Theme</p>
+                      <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-400'}`}>
+                        {isDark ? 'Dark mode' : 'Light mode'}
                       </p>
                     </div>
                   </div>
                   <Switch 
-                    checked={darkMode} 
+                    checked={isDark} 
                     onCheckedChange={toggleTheme}
                     className="data-[state=checked]:bg-blue-500"
                   />
@@ -171,50 +234,15 @@ const AppContent = () => {
 
                 {/* Sidebar Sliders */}
                 <div className="space-y-4">
-                  {/* Volume Control */}
-                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Bell className="h-4 w-4 text-slate-300" />
-                        <span className="text-xs font-medium text-slate-200">Volume</span>
-                      </div>
-                      <span className="text-xs text-slate-400">{volumeSlider[0]}%</span>
-                    </div>
-                    <Slider
-                      value={volumeSlider}
-                      onValueChange={setVolumeSlider}
-                      max={100}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
-
-                  {/* Brightness Control */}
-                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <Sun className="h-4 w-4 text-slate-300" />
-                        <span className="text-xs font-medium text-slate-200">Brightness</span>
-                      </div>
-                      <span className="text-xs text-slate-400">{brightnessSlider[0]}%</span>
-                    </div>
-                    <Slider
-                      value={brightnessSlider}
-                      onValueChange={setBrightnessSlider}
-                      max={100}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
 
                   {/* Notifications Control */}
-                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <div className={`p-3 rounded-lg border ${isDark ? 'bg-purple-900/30 border-purple-700' : 'bg-white/10 backdrop-blur-sm border-white/20'}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <MessageSquare className="h-4 w-4 text-slate-300" />
-                        <span className="text-xs font-medium text-slate-200">Notifications</span>
+                        <MessageSquare className={`h-4 w-4 ${isDark ? 'text-gray-300' : 'text-slate-300'}`} />
+                        <span className={`text-xs font-medium ${isDark ? 'text-gray-200' : 'text-slate-200'}`}>Notifications</span>
                       </div>
-                      <span className="text-xs text-slate-400">{notificationsSlider[0]}%</span>
+                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-400'}`}>{notificationsSlider[0]}%</span>
                     </div>
                     <Slider
                       value={notificationsSlider}
@@ -226,8 +254,8 @@ const AppContent = () => {
                   </div>
                 </div>
               </SidebarHeader>
-              <SidebarSeparator className="sidebar-separator" />
-              <SidebarContent className="sidebar-content">
+              <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+              <SidebarContent className={`sidebar-content ${isDark ? 'sidebar-content' : ''}`}>
                 <SidebarMenu>
                   {/* Main Navigation */}
                   <SidebarMenuItem>
@@ -256,8 +284,8 @@ const AppContent = () => {
                   </SidebarMenuItem>
 
                   {/* Academic Section */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     Academic
                   </div>
                   <SidebarMenuItem>
@@ -334,8 +362,8 @@ const AppContent = () => {
                   </SidebarMenuItem>
 
                   {/* Student Services */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     Services
                   </div>
                   <SidebarMenuItem>
@@ -388,8 +416,8 @@ const AppContent = () => {
                   </SidebarMenuItem>
 
                   {/* Communication */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     Communication
                   </div>
                   <SidebarMenuItem>
@@ -405,16 +433,109 @@ const AppContent = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      isActive={location.pathname === "/notifications"} 
-                      onClick={() => navigate("/notifications")}
-                      className={`sidebar-menu-button ${location.pathname === "/notifications" ? 'active' : ''}`}
-                    > 
-                      <div className="icon-container icon-notifications">
-                        <Bell className="h-5 w-5" />
-                      </div>
-                      <span> Notifications </span>
-                    </SidebarMenuButton>
+                    <DropdownMenu open={showNotificationDropdown} onOpenChange={setShowNotificationDropdown}>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton 
+                          isActive={location.pathname === "/notifications"} 
+                          className={`sidebar-menu-button ${location.pathname === "/notifications" ? 'active' : ''}`}
+                        > 
+                          <div className="icon-container icon-notifications relative">
+                            <Bell className="h-5 w-5" />
+                            {unreadCount > 0 && (
+                              <Badge 
+                                variant="destructive" 
+                                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                              >
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                              </Badge>
+                            )}
+                          </div>
+                          <span> Notifications </span>
+                        </SidebarMenuButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent 
+                        align="start" 
+                        className="w-80 max-h-96 overflow-y-auto"
+                        side="right"
+                      >
+                        <div className="p-3 border-b">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-sm">Notifications</h3>
+                            {unreadCount > 0 && (
+                              <button
+                                onClick={markAllAsRead}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                              >
+                                Mark all as read
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500 text-sm">
+                            No notifications
+                          </div>
+                        ) : (
+                          <div className="max-h-64 overflow-y-auto">
+                            {notifications.map((notification) => (
+                              <DropdownMenuItem
+                                key={notification.id}
+                                className="p-3 border-b last:border-b-0 cursor-pointer"
+                                onClick={() => markAsRead(notification.id)}
+                              >
+                                <div className="flex items-start gap-3 w-full">
+                                  <div className={`p-1 rounded-full ${getPriorityColor(notification.priority)}`}>
+                                    {getNotificationIcon(notification.type)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-600'}`}>
+                                          {notification.title}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                          {notification.message}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                          {notification.time}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-1 ml-2">
+                                        {!notification.read && (
+                                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        )}
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteNotification(notification.id);
+                                          }}
+                                          className="text-gray-400 hover:text-red-500 p-1"
+                                        >
+                                          <XCircle className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </DropdownMenuItem>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <div className="p-3 border-t">
+                          <button
+                            onClick={() => {
+                              setShowNotificationDropdown(false);
+                              navigate("/notifications");
+                            }}
+                            className="w-full text-center text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            View all notifications
+                          </button>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
@@ -430,8 +551,8 @@ const AppContent = () => {
                   </SidebarMenuItem>
 
                   {/* Analytics & Reports */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     Analytics
                   </div>
                   <SidebarMenuItem>
@@ -472,8 +593,8 @@ const AppContent = () => {
                   </SidebarMenuItem>
 
                   {/* AI Features Section */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     AI Features
                   </div>
                   <SidebarMenuItem>
@@ -516,8 +637,8 @@ const AppContent = () => {
                   {/* Admin Section */}
                   {(user?.role === 'admin' || user?.role === 'teacher') && (
                     <>
-                      <SidebarSeparator className="sidebar-separator" />
-                      <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                      <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                         Administration
                       </div>
                       <SidebarMenuItem>
@@ -548,8 +669,8 @@ const AppContent = () => {
                   )}
 
                   {/* User Account Section */}
-                  <SidebarSeparator className="sidebar-separator" />
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
+                  <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'sidebar-section-header' : 'text-slate-400'}`}>
                     Account
                   </div>
                   <SidebarMenuItem>
@@ -590,7 +711,7 @@ const AppContent = () => {
                   </SidebarMenuItem>
                   
                   {/* Authentication Section */}
-                  <SidebarSeparator className="sidebar-separator" />
+                  <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={location.pathname === "/auth"} 
@@ -609,7 +730,7 @@ const AppContent = () => {
             </div>
           
           {/* Main content area */}
-          <div className="flex-1 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ml-64">
+          <div className={`flex-1 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin ml-64 ${isDark ? 'scrollbar-thumb-gray-600 scrollbar-track-gray-800' : 'scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
@@ -648,7 +769,9 @@ const App = () => {
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
-            <AppContent />
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
           </AuthProvider>
         </BrowserRouter>
         <Toaster />

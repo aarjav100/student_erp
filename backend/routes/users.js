@@ -10,7 +10,7 @@ const router = express.Router();
 // @access  Private
 router.get('/profile', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     
     if (!user) {
       return res.status(404).json({
@@ -37,11 +37,28 @@ router.get('/profile', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', [
   protect,
-  body('firstName').optional().trim().notEmpty(),
-  body('lastName').optional().trim().notEmpty(),
+  body('firstName').optional().trim(),
+  body('lastName').optional().trim(),
   body('phone').optional().trim(),
-  body('dateOfBirth').optional().isISO8601(),
-  body('avatarUrl').optional().isURL(),
+  body('dateOfBirth').optional().custom((value) => {
+    if (value === '' || value === null || value === undefined) return true;
+    return new Date(value).toISOString() !== 'Invalid Date';
+  }),
+  body('emergencyContact').optional().trim(),
+  body('address').optional().trim(),
+  body('bio').optional().trim(),
+  body('studentId').optional().trim(),
+  body('yearLevel').optional().isInt({ min: 1, max: 10 }),
+  body('program').optional().trim(),
+  body('avatarUrl').optional().custom((value) => {
+    if (value === '' || value === null || value === undefined) return true;
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -53,9 +70,16 @@ router.put('/profile', [
       });
     }
 
-    const updates = req.body;
+    // Clean up empty strings - convert them to null/undefined
+    const updates = { ...req.body };
+    Object.keys(updates).forEach(key => {
+      if (updates[key] === '') {
+        updates[key] = undefined;
+      }
+    });
+
     const updatedUser = await User.findByIdAndUpdate(
-      req.user.userId, 
+      req.user._id, 
       updates, 
       { new: true }
     ).select('-password');

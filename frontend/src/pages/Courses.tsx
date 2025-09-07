@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +16,15 @@ import {
   BookOpen, Clock, Users, Calendar, MapPin, FileText, Download, Upload, MessageSquare, 
   Star, Bookmark, Share2, Eye, Edit, Trash2, Plus, Search, Filter, SortAsc, SortDesc,
   Bell, CheckCircle, AlertCircle, XCircle, Mail, Phone, Video, Calendar as CalendarIcon,
-  TrendingUp, Award, Target, BookmarkPlus, GraduationCap, Zap, Heart, ThumbsUp
+  TrendingUp, Award, Target, BookmarkPlus, GraduationCap, Zap, Heart, ThumbsUp,
+  Moon, Sun
 } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 
 const Courses = () => {
   const { user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,38 +44,6 @@ const Courses = () => {
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showAvailableCoursesDialog, setShowAvailableCoursesDialog] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Initialize theme on component mount - default to light mode
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    
-    if (savedTheme === 'dark') {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      // Default to light mode
-      setDarkMode(false);
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, []);
-
-  // Function to toggle theme
-  const toggleTheme = (checked: boolean) => {
-    setDarkMode(checked);
-    if (checked) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   // Enhanced course data with more realistic details
   const [courses, setCourses] = useState([
@@ -507,6 +478,177 @@ const Courses = () => {
     }
   }, []);
 
+  // Handle downloadable resources
+  const handleDownloadResource = useCallback(async (resourceType) => {
+    setLoading(true);
+    try {
+      // Simulate download process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create sample content based on resource type
+      let content = '';
+      let filename = '';
+      let mimeType = '';
+      
+      switch (resourceType) {
+        case 'assignment-sheets':
+          content = `Assignment Sheets for ${selectedCourse?.title || 'Course'}
+
+Assignment 1: Basic Programming Concepts
+Due Date: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+Points: 100
+
+Instructions:
+1. Complete all programming exercises
+2. Submit your code with proper comments
+3. Include test cases for each function
+4. Follow the coding standards discussed in class
+
+Assignment 2: Data Structures Implementation
+Due Date: ${new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+Points: 150
+
+Instructions:
+1. Implement the required data structures
+2. Write comprehensive unit tests
+3. Document your implementation approach
+4. Submit both code and documentation
+
+Assignment 3: Final Project
+Due Date: ${new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+Points: 200
+
+Instructions:
+1. Choose a project from the approved list
+2. Implement the complete solution
+3. Create a presentation
+4. Submit code, documentation, and presentation`;
+          filename = `Assignment_Sheets_${selectedCourse?.courseCode || 'Course'}.txt`;
+          mimeType = 'text/plain';
+          break;
+          
+        case 'sample-solutions':
+          content = `Sample Solutions for ${selectedCourse?.title || 'Course'}
+
+Sample Solution 1: Basic Programming Concepts
+
+// Example: Function to calculate factorial
+function factorial(n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
+}
+
+// Test cases
+console.log(factorial(5)); // Output: 120
+console.log(factorial(0)); // Output: 1
+
+Sample Solution 2: Data Structures Implementation
+
+class Stack {
+    constructor() {
+        this.items = [];
+    }
+    
+    push(element) {
+        this.items.push(element);
+    }
+    
+    pop() {
+        if (this.items.length === 0) return "Underflow";
+        return this.items.pop();
+    }
+    
+    peek() {
+        return this.items[this.items.length - 1];
+    }
+    
+    isEmpty() {
+        return this.items.length === 0;
+    }
+}
+
+// Usage example
+const stack = new Stack();
+stack.push(10);
+stack.push(20);
+console.log(stack.pop()); // Output: 20`;
+          filename = `Sample_Solutions_${selectedCourse?.courseCode || 'Course'}.txt`;
+          mimeType = 'text/plain';
+          break;
+          
+        case 'grading-rubric':
+          content = `Grading Rubric for ${selectedCourse?.title || 'Course'}
+
+ASSIGNMENT GRADING CRITERIA
+
+1. Code Quality (40 points)
+   - Correctness: 20 points
+   - Efficiency: 10 points
+   - Readability: 10 points
+
+2. Documentation (20 points)
+   - Comments: 10 points
+   - README file: 10 points
+
+3. Testing (20 points)
+   - Test coverage: 10 points
+   - Test quality: 10 points
+
+4. Submission (20 points)
+   - On time: 10 points
+   - Format compliance: 10 points
+
+GRADE SCALE:
+A: 90-100 points
+B: 80-89 points
+C: 70-79 points
+D: 60-69 points
+F: Below 60 points
+
+LATE SUBMISSION POLICY:
+- 1 day late: -10 points
+- 2-3 days late: -20 points
+- 4+ days late: -50 points
+
+PLAGIARISM POLICY:
+- Plagiarism >20% will lead to rejection
+- First offense: Grade of F
+- Second offense: Course failure
+- Third offense: Academic probation`;
+          filename = `Grading_Rubric_${selectedCourse?.courseCode || 'Course'}.txt`;
+          mimeType = 'text/plain';
+          break;
+          
+        default:
+          throw new Error('Unknown resource type');
+      }
+      
+      // Create and download file
+      const blob = new Blob([content], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Started",
+        description: `${resourceType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} is being downloaded.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Unable to download the file. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCourse]);
+
   const handleSubmitAssignment = useCallback(async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -857,9 +999,21 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+    <div className={`min-h-screen overflow-y-auto scrollbar-thin ${isDark ? 'bg-black scrollbar-thumb-gray-600 scrollbar-track-gray-800' : 'bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 scrollbar-thumb-gray-300 scrollbar-track-gray-100'}`}>
       <div className="container mx-auto px-4 py-8">
-      {/* Enhanced Header */}
+        {/* Theme Toggle */}
+        <div className="fixed top-4 right-4 z-50">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className={`${isDark ? 'btn-secondary' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        {/* Enhanced Header */}
         <div className="text-center space-y-6 mb-12">
         <div className="flex justify-center">
             <div className="relative">
@@ -870,13 +1024,13 @@ const Courses = () => {
         </div>
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          My Courses
-        </h1>
-            <p className="text-xl text-gray-600">
-              Welcome back, <span className="font-semibold text-gray-800">{user?.firstName}</span>! Here's your academic overview for {courses[0]?.semester}
-        </p>
-      </div>
+            <h1 className={`text-5xl font-bold ${isDark ? 'text-white' : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent'}`}>
+              My Courses
+            </h1>
+            <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              Welcome back, <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{user?.firstName}</span>! Here's your academic overview for {courses[0]?.semester}
+            </p>
+          </div>
 
           {/* Quick action buttons */}
           <div className="flex flex-wrap justify-center gap-3">
@@ -906,7 +1060,7 @@ const Courses = () => {
         </div>
 
         {/* Enhanced Search and Filter */}
-        <Card className="mb-8 border-0 shadow-lg bg-slate-50/80 backdrop-blur-sm">
+        <Card className={`mb-8 border-0 shadow-lg ${isDark ? 'card-dark' : 'bg-slate-50/80 backdrop-blur-sm'}`}>
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
@@ -915,12 +1069,12 @@ const Courses = () => {
                   placeholder="Search courses, instructors, categories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 border-0 bg-gray-50 focus:bg-slate-100 transition-colors duration-200"
+                  className={`pl-12 h-12 border-0 transition-colors duration-200 ${isDark ? 'input-dark' : 'bg-gray-50 focus:bg-slate-100'}`}
                 />
               </div>
               <div className="flex flex-wrap gap-3">
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 h-12 bg-gray-50 border-0">
+                  <SelectTrigger className={`w-40 h-12 border-0 ${isDark ? 'input-dark' : 'bg-gray-50'}`}>
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -932,7 +1086,7 @@ const Courses = () => {
                   </SelectContent>
                 </Select>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40 h-12 bg-gray-50 border-0">
+                  <SelectTrigger className={`w-40 h-12 border-0 ${isDark ? 'input-dark' : 'bg-gray-50'}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -947,7 +1101,7 @@ const Courses = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="h-12 w-12 bg-gray-50 border-0 hover:bg-gray-100"
+                  className={`h-12 w-12 border-0 ${isDark ? 'btn-secondary' : 'bg-gray-50 hover:bg-gray-100'}`}
                 >
                   {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
                 </Button>
@@ -995,9 +1149,9 @@ const Courses = () => {
       {/* Course List */}
         <div className="space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-gray-900">Current Semester</h2>
-            <p className="text-gray-600">Fall 2024 • {filteredCourses.length} of {courses.length} courses shown</p>
-        </div>
+            <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Current Semester</h2>
+            <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Fall 2024 • {filteredCourses.length} of {courses.length} courses shown</p>
+          </div>
           
           <div className="space-y-8">
             {filteredCourses.map((course) => (
@@ -1534,6 +1688,49 @@ const Courses = () => {
                       Upload Material
                     </Button>
                   </div>
+
+                  {/* Downloadable Resources Section */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <p className="text-sm text-blue-600 font-medium">Plagiarism &gt;20% will lead to rejection</p>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-800">Downloadable Resources</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <Button
+                        onClick={() => handleDownloadResource('assignment-sheets')}
+                        disabled={loading}
+                        variant="outline"
+                        className="h-auto p-4 flex flex-col items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400"
+                      >
+                        <Download className="h-5 w-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">Assignment Sheets</span>
+                      </Button>
+                      
+                      <Button
+                        onClick={() => handleDownloadResource('sample-solutions')}
+                        disabled={loading}
+                        variant="outline"
+                        className="h-auto p-4 flex flex-col items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400"
+                      >
+                        <Download className="h-5 w-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">Sample Solutions</span>
+                      </Button>
+                      
+                      <Button
+                        onClick={() => handleDownloadResource('grading-rubric')}
+                        disabled={loading}
+                        variant="outline"
+                        className="h-auto p-4 flex flex-col items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400"
+                      >
+                        <Download className="h-5 w-5 text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">Grading Rubric</span>
+                      </Button>
+                    </div>
+                  </div>
                   
                   <div className="space-y-4">
                     {selectedCourse.materials.map((material) => (
@@ -1667,22 +1864,6 @@ const Courses = () => {
         </Dialog>
       </div>
 
-      {/* Theme Toggle */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <div className="flex items-center justify-between p-4 theme-toggle-card rounded-lg shadow-lg">
-          <div>
-            <p className="font-medium">Theme Mode</p>
-            <p className="text-sm text-muted-foreground">
-              {darkMode ? 'Currently in dark mode' : 'Currently in light mode'}
-            </p>
-          </div>
-          <Switch 
-            checked={darkMode} 
-            onCheckedChange={toggleTheme}
-            className="data-[state=checked]:bg-primary ml-4"
-          />
-        </div>
-      </div>
     </div>
   );
 };
