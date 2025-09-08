@@ -16,7 +16,16 @@ import {
   RefreshCw,
   BookOpen,
   GraduationCap,
-  UserPlus
+  UserPlus,
+  ClipboardList,
+  Building2,
+  Home,
+  FileSpreadsheet,
+  FileBarChart2,
+  Bell,
+  Wrench,
+  Megaphone,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CourseManagement from '@/components/Admin/CourseManagement';
@@ -27,7 +36,7 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'teacher' | 'admin' | 'warden';
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }
@@ -53,6 +62,8 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [approvedStudents, setApprovedStudents] = useState<any[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [hostelMetrics, setHostelMetrics] = useState({ occupancy: 0, pendingLeaves: 0, pendingComplaints: 0 });
+  const [tab, setTab] = useState<'students' | 'attendance' | 'grades' | 'assignments' | 'hostel' | 'leaves' | 'complaints' | 'notices'>('students');
 
   // Check if user is admin
   if (user?.role !== 'admin') {
@@ -124,6 +135,29 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchHostelMetrics = async () => {
+    try {
+      const resRooms = await fetch('/api/hostel/rooms', { headers: { 'Authorization': `Bearer ${token}` } });
+      const roomsData = await resRooms.json();
+      const rooms = roomsData?.data || [];
+      const total = rooms.length || 0;
+      const occupied = rooms.filter((r: any) => r.status === 'occupied').length;
+      const occupancy = total ? Math.round((occupied / total) * 100) : 0;
+
+      const leavesRes = await fetch('/api/hostel/leaves', { headers: { 'Authorization': `Bearer ${token}` } });
+      const leaves = (await leavesRes.json())?.data || [];
+      const pendingLeaves = leaves.filter((l: any) => l.status === 'pending').length;
+
+      const complaintsRes = await fetch('/api/hostel/complaints', { headers: { 'Authorization': `Bearer ${token}` } });
+      const complaints = (await complaintsRes.json())?.data || [];
+      const pendingComplaints = complaints.filter((c: any) => ['open', 'in_progress'].includes(c.status)).length;
+
+      setHostelMetrics({ occupancy, pendingLeaves, pendingComplaints });
+    } catch (e) {
+      console.error('Failed to load hostel metrics', e);
+    }
+  };
+
   const approveUser = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/approve`, {
@@ -168,6 +202,7 @@ const AdminPanel = () => {
     fetchUsers();
     fetchStats();
     fetchApprovedStudents();
+    fetchHostelMetrics();
   }, []);
 
   const filteredUsers = users.filter(user => {
@@ -194,75 +229,93 @@ const AdminPanel = () => {
     const colors = {
       student: 'bg-blue-100 text-blue-800 border-blue-200',
       teacher: 'bg-purple-100 text-purple-800 border-purple-200',
-      admin: 'bg-orange-100 text-orange-800 border-orange-200'
+      admin: 'bg-orange-100 text-orange-800 border-orange-200',
+      warden: 'bg-emerald-100 text-emerald-800 border-emerald-200'
     };
-    return <Badge className={colors[role as keyof typeof colors]}>{role}</Badge>;
+    return <Badge className={colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200'}>{role}</Badge>;
   };
 
   return (
     <div className="h-full w-full p-6 overflow-y-auto overflow-x-hidden bg-gray-50 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Panel</h1>
-        <p className="text-gray-600">Manage users, courses, and system settings</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage students, academics, hostel, and system settings</p>
+        </div>
+        <div className="flex gap-2">
+          <Button className="bg-blue-600 hover:bg-blue-700"><UserPlus className="h-4 w-4 mr-2" />Add Student</Button>
+          <Button variant="outline"><ClipboardList className="h-4 w-4 mr-2" />Update Attendance</Button>
+          <Button variant="outline"><CheckCircle className="h-4 w-4 mr-2" />Approve Requests</Button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-500" />
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Students</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.byRole?.students ?? '-'}</p>
               </div>
-            </CardContent>
-          </Card>
+              <GraduationCap className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Pending Approval</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pendingUsers}</p>
-                </div>
-                <Clock className="h-8 w-8 text-yellow-500" />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Attendance %</p>
+                <p className="text-2xl font-bold text-gray-900">—</p>
               </div>
-            </CardContent>
-          </Card>
+              <BarChart3 className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Approved</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.approvedUsers}</p>
-                </div>
-                <UserCheck className="h-8 w-8 text-green-500" />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Hostel Occupancy %</p>
+                <p className="text-2xl font-bold text-gray-900">{hostelMetrics.occupancy}%</p>
               </div>
-            </CardContent>
-          </Card>
+              <Home className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Rejected</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.rejectedUsers}</p>
-                </div>
-                <UserX className="h-8 w-8 text-red-500" />
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending Leave Requests</p>
+                <p className="text-2xl font-bold text-gray-900">{hostelMetrics.pendingLeaves}</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+              <Clock className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Approved Students List */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Complaints Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{hostelMetrics.pendingComplaints}</p>
+              </div>
+              <Wrench className="h-8 w-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Approved Students quick table */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-3">Approved Students</h2>
+        <h2 className="text-xl font-semibold mb-3">Approved Students</h2>
         <div className="rounded-md border">
           <table className="min-w-full text-sm">
             <thead>
@@ -271,6 +324,7 @@ const AdminPanel = () => {
                 <th className="px-3 py-2 text-left">Email</th>
                 <th className="px-3 py-2 text-left">Student ID</th>
                 <th className="px-3 py-2 text-left">Approved At</th>
+                <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -285,6 +339,29 @@ const AdminPanel = () => {
                     <td className="px-3 py-2">{s.email}</td>
                     <td className="px-3 py-2">{s.studentId || '-'}</td>
                     <td className="px-3 py-2">{s.approvedAt ? new Date(s.approvedAt).toLocaleDateString() : '-'}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            localStorage.setItem('admin:selectedStudentId', s._id);
+                            setTab('attendance');
+                          }}
+                        >
+                          Mark Attendance
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            localStorage.setItem('admin:selectedStudentId', s._id);
+                            setTab('grades');
+                          }}
+                        >
+                          Assign Grade
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -293,28 +370,23 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* Admin Tabs */}
-      <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            User Management
-          </TabsTrigger>
-          <TabsTrigger value="courses" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Course Management
-          </TabsTrigger>
-          <TabsTrigger value="enrollments" className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
-            Enrollment Management
-          </TabsTrigger>
-          <TabsTrigger value="attendance" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            Attendance Management
-          </TabsTrigger>
+      {/* Admin Sections */}
+      <Tabs value={tab} onValueChange={(v:any)=>setTab(v)} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="students" className="flex items-center gap-2"><Users className="h-4 w-4" />Students</TabsTrigger>
+          <TabsTrigger value="attendance" className="flex items-center gap-2"><ClipboardList className="h-4 w-4" />Attendance</TabsTrigger>
+          <TabsTrigger value="grades" className="flex items-center gap-2"><FileSpreadsheet className="h-4 w-4" />Grades</TabsTrigger>
+          <TabsTrigger value="assignments" className="flex items-center gap-2"><BookOpen className="h-4 w-4" />Assignments</TabsTrigger>
+          <TabsTrigger value="hostel" className="flex items-center gap-2"><Home className="h-4 w-4" />Hostel</TabsTrigger>
+          <TabsTrigger value="leaves" className="flex items-center gap-2"><Clock className="h-4 w-4" />Leaves</TabsTrigger>
+          <TabsTrigger value="complaints" className="flex items-center gap-2"><Wrench className="h-4 w-4" />Complaints</TabsTrigger>
+          <TabsTrigger value="notices" className="flex items-center gap-2"><Megaphone className="h-4 w-4" />Notices</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users" className="space-y-6">
+        {/* Students */}
+        <TabsContent value="students" className="space-y-6">
+          {/* Reuse existing User Management block */}
+          {/* Existing code below unchanged */}
           <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -401,7 +473,7 @@ const AdminPanel = () => {
                       Joined: {new Date(user.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     {user.status === 'pending' && (
                       <>
                         <Button
@@ -443,6 +515,64 @@ const AdminPanel = () => {
                         Approve
                       </Button>
                     )}
+                    {/* Role assign */}
+                    <select
+                      className="text-sm border rounded px-2 py-1"
+                      value={user.role}
+                      onChange={async (e) => {
+                        const newRole = e.target.value;
+                        try {
+                          await fetch(`/api/admin/users/${user._id}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ role: newRole })
+                          });
+                          fetchUsers();
+                        } catch (err) { console.error(err); }
+                      }}
+                    >
+                      <option value="student">student</option>
+                      <option value="teacher">teacher</option>
+                      <option value="admin">admin</option>
+                      <option value="warden">warden</option>
+                    </select>
+                    {/* Edit */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        const name = prompt('Name', user.name) || user.name;
+                        const email = prompt('Email', user.email) || user.email;
+                        try {
+                          await fetch(`/api/admin/users/${user._id}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, email })
+                          });
+                          fetchUsers();
+                        } catch (err) { console.error(err); }
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    {/* Delete */}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={async () => {
+                        if (!confirm('Delete this user?')) return;
+                        try {
+                          await fetch(`/api/admin/users/${user._id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          });
+                          fetchUsers();
+                          fetchStats();
+                        } catch (err) { console.error(err); }
+                      }}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               ))
@@ -452,16 +582,102 @@ const AdminPanel = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="courses" className="space-y-6">
-          <CourseManagement />
-        </TabsContent>
-
-        <TabsContent value="enrollments" className="space-y-6">
-          <EnrollmentManagement />
-        </TabsContent>
-
+        {/* Attendance */}
         <TabsContent value="attendance" className="space-y-6">
           <AttendanceManagement />
+          <Card>
+            <CardHeader>
+              <CardTitle>Bulk Upload Attendance</CardTitle>
+              <CardDescription>Upload Excel/CSV to record attendance in bulk.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline"><FileSpreadsheet className="h-4 w-4 mr-2" />Upload CSV</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Grades */}
+        <TabsContent value="grades" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Grades & Examination</CardTitle>
+              <CardDescription>Upload results, calculate GPA/CGPA, generate reports.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Button><FileSpreadsheet className="h-4 w-4 mr-2" />Upload Results</Button>
+                <Button variant="outline"><FileBarChart2 className="h-4 w-4 mr-2" />Generate Reports</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Assignments */}
+        <TabsContent value="assignments" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignments & Projects</CardTitle>
+              <CardDescription>Manage assignments, submissions and grading.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button><ClipboardList className="h-4 w-4 mr-2" />Create Assignment</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Hostel */}
+        <TabsContent value="hostel" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Hostel Management</CardTitle>
+              <CardDescription>Allocate rooms, track occupancy and fees.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 flex-wrap">
+                <Button><Home className="h-4 w-4 mr-2" />Allocate Room</Button>
+                <Button variant="outline"><FileBarChart2 className="h-4 w-4 mr-2" />Hostel Reports</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Leaves */}
+        <TabsContent value="leaves" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Leave Requests</CardTitle>
+              <CardDescription>View and approve or reject student leave requests.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline"><CheckCircle className="h-4 w-4 mr-2" />Review Requests</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Complaints */}
+        <TabsContent value="complaints" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Complaints & Maintenance</CardTitle>
+              <CardDescription>Assign complaints and track resolution progress.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline"><Wrench className="h-4 w-4 mr-2" />Assign Complaints</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notices */}
+        <TabsContent value="notices" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notice Board & Announcements</CardTitle>
+              <CardDescription>Publish academic/hostel notices and updates.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button><Megaphone className="h-4 w-4 mr-2" />Publish Notice</Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

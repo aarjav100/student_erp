@@ -188,3 +188,40 @@ export const getUserStats = async (req, res) => {
     });
   }
 };
+
+// @desc    Update a user's details (name, email, role, studentId)
+// @route   PUT /api/admin/users/:id
+// @access  Private (Admin only)
+export const updateUser = async (req, res) => {
+  try {
+    const allowed = ['name', 'email', 'role', 'studentId'];
+    const updates = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.json({ success: true, message: 'User updated', data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+// @access  Private (Admin only)
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    res.json({ success: true, message: 'User deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};

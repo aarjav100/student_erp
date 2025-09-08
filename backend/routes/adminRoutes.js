@@ -4,7 +4,9 @@ import {
   getAllUsers, 
   approveUser, 
   rejectUser, 
-  getUserStats 
+  getUserStats,
+  updateUser,
+  deleteUser
 } from '../controllers/adminController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
@@ -20,5 +22,7 @@ router.get('/users', getAllUsers);
 router.get('/stats', getUserStats);
 router.put('/users/:id/approve', approveUser);
 router.put('/users/:id/reject', rejectUser);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 
 export default router;
