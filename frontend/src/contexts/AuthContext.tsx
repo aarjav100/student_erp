@@ -8,7 +8,7 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'teacher' | 'faculty' | 'professor' | 'assistant-professor' | 'associate-professor' | 'admin' | 'staff' | 'librarian' | 'accountant' | 'hr' | 'registrar' | 'dean' | 'principal' | 'vice-principal' | 'coordinator' | 'counselor' | 'security' | 'maintenance' | 'guest' | 'warden' | 'rector';
   status: 'pending' | 'approved' | 'rejected';
   studentId?: string;
   phone?: string;

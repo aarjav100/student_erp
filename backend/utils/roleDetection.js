@@ -66,7 +66,7 @@ export function getApprovalAuthority(role) {
 
 // Validation function to check if email is valid
 export function isValidCollegeEmail(email) {
-  // Allow any valid email format
+  // Allow any valid email format for development
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }

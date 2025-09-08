@@ -82,6 +82,11 @@ export const approveUser = async (req, res) => {
     }
 
     user.status = "approved";
+    // Track who approved and when
+    if (req.user?._id) {
+      user.approvedBy = req.user._id;
+    }
+    user.approvedAt = new Date();
     await user.save();
 
     res.json({
@@ -92,7 +97,9 @@ export const approveUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        status: user.status
+        status: user.status,
+        approvedAt: user.approvedAt,
+        approvedBy: user.approvedBy
       }
     });
   } catch (error) {

@@ -244,12 +244,25 @@ const Timetable = () => {
     }
   };
 
+  // Helpers to darken background colors in dark mode
+  const darkenBg = (bg: string) => {
+    // convert tailwind like 'bg-blue-600' -> darker shade
+    const m = bg.match(/^(bg-[a-z-]+)-(\d{3})$/);
+    if (!m) return bg;
+    const base = m[1];
+    const shade = parseInt(m[2], 10);
+    const darker = Math.min(900, shade + 200);
+    return `${base}-${darker}`;
+  };
+
   // Class card component
   const ClassCard = ({ classItem }) => {
     const SubjectIcon = getSubjectIcon(classItem.subject);
+    const bgColor = isDark ? darkenBg(classItem.color) : classItem.color;
+    const textColor = isDark ? 'text-white' : classItem.textColor;
     
     return (
-      <Card className={`${classItem.color} ${classItem.textColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-xl overflow-hidden`}>
+      <Card className={`${bgColor} ${textColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-xl overflow-hidden`}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -286,9 +299,11 @@ const Timetable = () => {
   // Assignment card component
   const AssignmentCard = ({ assignment }) => {
     const Icon = assignment.icon;
+    const bgColor = isDark ? darkenBg(assignment.color.replace('bg-', 'bg-')) : assignment.color;
+    const textColor = isDark ? 'text-white' : assignment.textColor;
 
   return (
-      <Card className={`${assignment.color} ${assignment.textColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-xl overflow-hidden`}>
+      <Card className={`${bgColor} ${textColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 rounded-xl overflow-hidden`}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">

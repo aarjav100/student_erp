@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["student", "teacher", "faculty", "professor", "assistant-professor", "associate-professor", "admin", "staff", "librarian", "accountant", "hr", "registrar", "dean", "principal", "vice-principal", "coordinator", "counselor", "security", "maintenance", "guest"],
+      enum: ["student", "teacher", "faculty", "professor", "assistant-professor", "associate-professor", "admin", "staff", "librarian", "accountant", "hr", "registrar", "dean", "principal", "vice-principal", "coordinator", "counselor", "security", "maintenance", "guest", "warden", "rector"],
       default: "student", // will be auto-detected at signup
     },
     status: {

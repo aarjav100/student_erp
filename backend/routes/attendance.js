@@ -1,222 +1,164 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { supabase } from '../config/supabase.js';
-import { protect, admin, teacher } from '../middleware/auth.js';
+import {
+  getAttendance,
+  getAttendanceById,
+  markAttendance,
+  updateAttendance,
+  deleteAttendance,
+  getAttendanceByCourse,
+  getAttendanceByStudent,
+  getAttendanceStats,
+  getStudentsForAttendance,
+  bulkMarkAttendance
+} from '../controllers/attendanceController.js';
+import {
+  generateDailyAttendanceReminders,
+  getAttendanceNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification
+} from '../services/attendanceNotificationService.js';
+import { protect, adminOnly, teacherOrAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// @desc    Get user's attendance
+// @desc    Get all attendance records
+// @route   GET /api/attendance
+// @access  Private (Admin, Faculty)
+router.get('/', protect, teacherOrAdmin, getAttendance);
+
+// @desc    Get attendance by ID
+// @route   GET /api/attendance/:id
+// @access  Private
+router.get('/:id', protect, getAttendanceById);
+
+// @desc    Mark attendance for students
+// @route   POST /api/attendance/mark
+// @access  Private (Admin, Faculty)
+router.post('/mark', [
+  protect,
+  teacherOrAdmin,
+  body('courseId').isMongoId().withMessage('Valid course ID is required'),
+  body('subjectId').optional().isMongoId().withMessage('Valid subject ID is required'),
+  body('date').isISO8601().withMessage('Valid date is required'),
+  body('semester').trim().notEmpty().withMessage('Semester is required'),
+  body('year').isInt({ min: 2020, max: 2030 }).withMessage('Valid year is required'),
+  body('attendanceData').isArray().withMessage('Attendance data array is required'),
+  body('attendanceData.*.studentId').isMongoId().withMessage('Valid student ID is required'),
+  body('attendanceData.*.status').isIn(['present', 'absent', 'late', 'excused', 'leave']).withMessage('Invalid status'),
+  body('notes').optional().trim(),
+], markAttendance);
+
+// @desc    Update attendance record
+// @route   PUT /api/attendance/:id
+// @access  Private (Admin, Faculty)
+router.put('/:id', [
+  protect,
+  teacherOrAdmin,
+  body('status').optional().isIn(['present', 'absent', 'late', 'excused', 'leave']).withMessage('Invalid status'),
+  body('checkInTime').optional().isISO8601().withMessage('Valid check-in time is required'),
+  body('checkOutTime').optional().isISO8601().withMessage('Valid check-out time is required'),
+  body('notes').optional().trim(),
+  body('excuseReason').optional().trim(),
+], updateAttendance);
+
+// @desc    Delete attendance record (soft delete)
+// @route   DELETE /api/attendance/:id
+// @access  Private (Admin)
+router.delete('/:id', protect, adminOnly, deleteAttendance);
+
+// @desc    Get attendance by course
+// @route   GET /api/attendance/course/:courseId
+// @access  Private
+router.get('/course/:courseId', protect, getAttendanceByCourse);
+
+// @desc    Get attendance by student
+// @route   GET /api/attendance/student/:studentId
+// @access  Private
+router.get('/student/:studentId', protect, getAttendanceByStudent);
+
+// @desc    Get attendance statistics
+// @route   GET /api/attendance/stats
+// @access  Private (Admin, Faculty)
+router.get('/stats', protect, teacherOrAdmin, getAttendanceStats);
+
+// @desc    Get students for attendance marking
+// @route   GET /api/attendance/students/:courseId
+// @access  Private (Admin, Faculty)
+router.get('/students/:courseId', protect, teacherOrAdmin, getStudentsForAttendance);
+
+// @desc    Bulk mark attendance
+// @route   POST /api/attendance/bulk
+// @access  Private (Admin, Faculty)
+router.post('/bulk', [
+  protect,
+  teacherOrAdmin,
+  body('courseId').isMongoId().withMessage('Valid course ID is required'),
+  body('subjectId').optional().isMongoId().withMessage('Valid subject ID is required'),
+  body('date').isISO8601().withMessage('Valid date is required'),
+  body('semester').trim().notEmpty().withMessage('Semester is required'),
+  body('year').isInt({ min: 2020, max: 2030 }).withMessage('Valid year is required'),
+  body('studentIds').isArray().withMessage('Student IDs array is required'),
+  body('status').isIn(['present', 'absent', 'late', 'excused', 'leave']).withMessage('Invalid status'),
+  body('notes').optional().trim(),
+], bulkMarkAttendance);
+
+// @desc    Get user's own attendance
 // @route   GET /api/attendance/my
 // @access  Private
 router.get('/my', protect, async (req, res) => {
   try {
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .select(`
-        *,
-        courses (*)
-      `)
-      .eq('student_id', req.user.id)
-      .order('date', { ascending: false });
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: 'Error fetching attendance',
-      });
+    const { courseId, startDate, endDate } = req.query;
+    
+    const filter = { studentId: req.user.id, isActive: true };
+    if (courseId) filter.courseId = courseId;
+    if (startDate && endDate) {
+      filter.date = { 
+        $gte: new Date(startDate), 
+        $lte: new Date(endDate) 
+      };
     }
 
-    res.json({
-      success: true,
-      data: attendance,
-    });
+    const attendance = await getAttendanceByStudent(req, res);
   } catch (error) {
-    console.error('Get attendance error:', error);
+    console.error('Get my attendance error:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error fetching attendance',
+      error: 'Server error fetching my attendance'
     });
   }
 });
 
-// @desc    Get all attendance (admin/teacher only)
-// @route   GET /api/attendance
-// @access  Private/Admin/Teacher
-router.get('/', protect, async (req, res) => {
-  try {
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .select(`
-        *,
-        profiles (*),
-        courses (*)
-      `)
-      .order('date', { ascending: false });
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: 'Error fetching attendance',
-      });
-    }
-
-    res.json({
-      success: true,
-      data: attendance,
-    });
-  } catch (error) {
-    console.error('Get all attendance error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error fetching attendance',
-    });
-  }
-});
-
-// @desc    Mark attendance (admin/teacher only)
-// @route   POST /api/attendance
-// @access  Private/Admin/Teacher
-router.post('/', [
+// @desc    Generate daily attendance reminder notifications
+// @route   POST /api/attendance/notifications/daily-reminder
+// @access  Private (Admin)
+router.post('/notifications/daily-reminder', [
   protect,
-  body('student_id').isUUID(),
-  body('course_id').isUUID(),
-  body('date').isISO8601(),
-  body('status').isIn(['present', 'absent', 'late', 'excused']),
-  body('notes').optional().trim(),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation error',
-        details: errors.array(),
-      });
-    }
+  adminOnly,
+  body('date').isISO8601().withMessage('Valid date is required'),
+  body('courseId').optional().isMongoId().withMessage('Valid course ID is required'),
+  body('subjectId').optional().isMongoId().withMessage('Valid subject ID is required'),
+], generateDailyAttendanceReminders);
 
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .insert([req.body])
-      .select(`
-        *,
-        profiles (*),
-        courses (*)
-      `)
-      .single();
-
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.message,
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Attendance marked successfully',
-      data: attendance,
-    });
-  } catch (error) {
-    console.error('Mark attendance error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error marking attendance',
-    });
-  }
-});
-
-// @desc    Update attendance (admin/teacher only)
-// @route   PUT /api/attendance/:id
-// @access  Private/Admin/Teacher
-router.put('/:id', [
-  protect,
-  body('status').isIn(['present', 'absent', 'late', 'excused']),
-  body('notes').optional().trim(),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation error',
-        details: errors.array(),
-      });
-    }
-
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .update(req.body)
-      .eq('id', req.params.id)
-      .select(`
-        *,
-        profiles (*),
-        courses (*)
-      `)
-      .single();
-
-    if (error || !attendance) {
-      return res.status(404).json({
-        success: false,
-        error: 'Attendance record not found',
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Attendance updated successfully',
-      data: attendance,
-    });
-  } catch (error) {
-    console.error('Update attendance error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error updating attendance',
-    });
-  }
-});
-
-// @desc    Get attendance summary
-// @route   GET /api/attendance/summary
+// @desc    Get attendance notifications for user
+// @route   GET /api/attendance/notifications
 // @access  Private
-router.get('/summary', protect, async (req, res) => {
-  try {
-    const { data: attendance, error } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('student_id', req.user.id);
+router.get('/notifications', protect, getAttendanceNotifications);
 
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: 'Error fetching attendance summary',
-      });
-    }
+// @desc    Mark notification as read
+// @route   PUT /api/attendance/notifications/:id/read
+// @access  Private
+router.put('/notifications/:id/read', protect, markNotificationAsRead);
 
-    const total = attendance.length;
-    const present = attendance.filter(a => a.status === 'present').length;
-    const absent = attendance.filter(a => a.status === 'absent').length;
-    const late = attendance.filter(a => a.status === 'late').length;
-    const excused = attendance.filter(a => a.status === 'excused').length;
-    const percentage = total > 0 ? ((present + late) / total) * 100 : 0;
+// @desc    Mark all notifications as read
+// @route   PUT /api/attendance/notifications/mark-all-read
+// @access  Private
+router.put('/notifications/mark-all-read', protect, markAllNotificationsAsRead);
 
-    res.json({
-      success: true,
-      data: {
-        total,
-        present,
-        absent,
-        late,
-        excused,
-        percentage: Math.round(percentage * 100) / 100,
-      },
-    });
-  } catch (error) {
-    console.error('Get attendance summary error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error fetching attendance summary',
-    });
-  }
-});
+// @desc    Delete notification
+// @route   DELETE /api/attendance/notifications/:id
+// @access  Private
+router.delete('/notifications/:id', protect, deleteNotification);
 
-export default router; 
+export default router;

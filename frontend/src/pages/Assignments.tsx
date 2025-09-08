@@ -301,7 +301,7 @@ const Assignments = () => {
             </div>
             <div className="p-4 bg-red-50 rounded-lg">
               <h4 className="font-semibold text-red-800 mb-2">Plagiarism</h4>
-              <p className="text-sm text-red-700">>20% will lead to rejection</p>
+              <p className="text-sm text-red-700">20% will lead to rejection</p>
             </div>
           </div>
         </CardContent>

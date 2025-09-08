@@ -8,8 +8,10 @@ import { Slider } from "@/components/ui/slider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { HostelProvider } from "@/contexts/HostelContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import UserProfile from "@/components/UserProfile";
 import Index from "./pages/Index";
@@ -29,6 +31,11 @@ import AIFeatures from "./pages/AIFeatures";
 import AIProjects from "./pages/AIProjects";
 import AdminPanel from "./pages/AdminPanel";
 import ApprovalManagement from "./pages/ApprovalManagement";
+import LMS from "./pages/LMS";
+import Hostel from "./pages/Hostel";
+import Notifications from "./pages/Notifications";
+import StudentEnrollment from "./components/Faculty/StudentEnrollment";
+import AttendanceDashboard from "./components/Student/AttendanceDashboard";
 import Dashboard from "./components/Dashboard/Dashboard";
 import AIChatbot from "./components/AI/AIChatbot";
 import {
@@ -86,7 +93,8 @@ import {
   Info,
   Sun,
   Moon,
-  UserCheck
+  UserCheck,
+  UserPlus
 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -360,6 +368,18 @@ const AppContent = () => {
                       <span> Timetable </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname.startsWith("/lms/")} 
+                      onClick={() => navigate("/courses")}
+                      className={`sidebar-menu-button ${location.pathname.startsWith("/lms/") ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-lms">
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <span> LMS </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
 
                   {/* Student Services */}
                   <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
@@ -412,6 +432,18 @@ const AppContent = () => {
                         <Award className="h-5 w-5" />
                       </div>
                       <span> Scholarships </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={location.pathname === "/hostel"} 
+                      onClick={() => navigate("/hostel")}
+                      className={`sidebar-menu-button ${location.pathname === "/hostel" ? 'active' : ''}`}
+                    > 
+                      <div className="icon-container icon-hostel">
+                        <Home className="h-5 w-5" />
+                      </div>
+                      <span> Hostel </span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
@@ -667,6 +699,22 @@ const AppContent = () => {
                       </SidebarMenuItem>
                     </>
                   )}
+                  
+                  {/* Faculty Menu Items */}
+                  {(user?.role === 'faculty' || user?.role === 'admin') && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={location.pathname === "/faculty/enrollment"} 
+                        onClick={() => navigate("/faculty/enrollment")}
+                        className={`sidebar-menu-button ${location.pathname === "/faculty/enrollment" ? 'active' : ''}`}
+                      > 
+                        <div className="icon-container icon-faculty">
+                          <UserPlus className="h-5 w-5" />
+                        </div>
+                        <span> Student Enrollment </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
 
                   {/* User Account Section */}
                   <SidebarSeparator className={`${isDark ? 'sidebar-separator' : 'sidebar-separator'}`} />
@@ -743,7 +791,7 @@ const AppContent = () => {
               <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/tuition" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
-              <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+              <Route path="/attendance" element={<ProtectedRoute><AttendanceDashboard /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
@@ -753,6 +801,10 @@ const AppContent = () => {
               <Route path="/ai-projects" element={<ProtectedRoute><AIProjects /></ProtectedRoute>} />
               <Route path="/admin-panel" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
               <Route path="/approvals" element={<ProtectedRoute><ApprovalManagement /></ProtectedRoute>} />
+              <Route path="/lms/:courseId" element={<ProtectedRoute><LMS /></ProtectedRoute>} />
+              <Route path="/hostel" element={<ProtectedRoute><Hostel /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/faculty/enrollment" element={<ProtectedRoute><StudentEnrollment /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
@@ -765,19 +817,23 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
           <AuthProvider>
-            <ThemeProvider>
-              <AppContent />
-            </ThemeProvider>
+            <HostelProvider>
+              <HelmetProvider>
+                <TooltipProvider>
+                  <AppContent />
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </HelmetProvider>
+            </HostelProvider>
           </AuthProvider>
-        </BrowserRouter>
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
-    </QueryClientProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 };
 

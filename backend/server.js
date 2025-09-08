@@ -17,13 +17,17 @@ import userRoutes from './routes/users.js';
 import dashboardRoutes from './routes/dashboard.js';
 import adminRoutes from './routes/adminRoutes.js';
 import approvalRoutes from './routes/approvalRoutes.js';
-// Temporarily commented out until MongoDB models are implemented
-// import courseRoutes from './routes/courses.js';
-// import enrollmentRoutes from './routes/enrollments.js';
-// import gradeRoutes from './routes/grades.js';
-// import attendanceRoutes from './routes/attendance.js';
-// import feesRoutes from './routes/fees.js';
-// import messageRoutes from './routes/messages.js';
+// LMS routes
+import lmsRoutes from './routes/lmsRoutes.js';
+// Course and academic routes
+import courseRoutes from './routes/courses.js';
+import subjectRoutes from './routes/subjects.js';
+import enrollmentRoutes from './routes/enrollments.js';
+import gradeRoutes from './routes/grades.js';
+import attendanceRoutes from './routes/attendance.js';
+import feesRoutes from './routes/fees.js';
+import messageRoutes from './routes/messages.js';
+import hostelRoutes from './routes/hostelRoutes.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -133,13 +137,17 @@ app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/approvals', approvalRoutes);
-// Temporarily commented out until MongoDB models are implemented
-// app.use('/api/courses', courseRoutes);
-// app.use('/api/enrollments', enrollmentRoutes);
-// app.use('/api/grades', gradeRoutes);
-// app.use('/api/attendance', attendanceRoutes);
-// app.use('/api/fees', feesRoutes);
-// app.use('/api/messages', messageRoutes);
+// LMS routes
+app.use('/api/lms', lmsRoutes);
+// Course and academic routes
+app.use('/api/courses', courseRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/grades', gradeRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/fees', feesRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/hostel', hostelRoutes);
 
 // Serve static files (if any)
 app.use('/uploads', express.static(join(__dirname, 'uploads')));

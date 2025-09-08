@@ -1,6 +1,9 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
+import Enrollment from '../models/Enrollment.js';
+import Grade from '../models/Grade.js';
+import Attendance from '../models/Attendance.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -204,36 +207,26 @@ router.patch('/students/:id/status', [
 router.get('/dashboard', protect, async (req, res) => {
   try {
     // Get user's enrollments
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select(`
-        *,
-        courses (*)
-      `)
-      .eq('student_id', req.user.id)
-      .eq('status', 'enrolled');
+    const enrollments = await Enrollment.find({ 
+      studentId: req.user.id, 
+      status: 'enrolled' 
+    })
+      .populate('courseId', 'title courseCode credits')
+      .sort({ createdAt: -1 });
 
     // Get user's recent grades
-    const { data: grades } = await supabase
-      .from('grades')
-      .select(`
-        *,
-        assignments (*),
-        courses (*)
-      `)
-      .eq('student_id', req.user.id)
-      .order('created_at', { ascending: false })
+    const grades = await Grade.find({ studentId: req.user.id })
+      .populate('assignmentId', 'title type')
+      .populate('courseId', 'title courseCode')
+      .sort({ createdAt: -1 })
       .limit(5);
 
     // Get user's attendance summary
-    const { data: attendance } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('student_id', req.user.id);
+    const attendance = await Attendance.find({ studentId: req.user.id });
 
     // Calculate attendance percentage
-    const totalSessions = attendance?.length || 0;
-    const attendedSessions = attendance?.filter(a => a.status === 'present').length || 0;
+    const totalSessions = attendance.length;
+    const attendedSessions = attendance.filter(a => a.status === 'present').length;
     const attendancePercentage = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0;
 
     res.json({

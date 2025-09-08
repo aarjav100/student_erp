@@ -1,7 +1,8 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { supabase } from '../config/supabase.js';
-import { protect, admin, teacher } from '../middleware/auth.js';
+import Message from '../models/Message.js';
+import User from '../models/User.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -10,22 +11,16 @@ const router = express.Router();
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select(`
-        *,
-        sender:profiles!messages_sender_id_fkey(*),
-        recipient:profiles!messages_recipient_id_fkey(*)
-      `)
-      .or(`sender_id.eq.${req.user.id},recipient_id.eq.${req.user.id}`)
-      .order('created_at', { ascending: false });
+    const { type, isRead } = req.query;
+    const query = { $or: [{ senderId: req.user.id }, { recipientId: req.user.id }] };
 
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: 'Error fetching messages',
-      });
-    }
+    if (type) query.type = type;
+    if (isRead !== undefined) query.isRead = isRead === 'true';
+
+    const messages = await Message.find(query)
+      .populate('senderId', 'name email')
+      .populate('recipientId', 'name email')
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -40,37 +35,47 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// @desc    Get conversation with specific user
-// @route   GET /api/messages/conversation/:userId
+// @desc    Get message by ID
+// @route   GET /api/messages/:id
 // @access  Private
-router.get('/conversation/:userId', protect, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select(`
-        *,
-        sender:profiles!messages_sender_id_fkey(*),
-        recipient:profiles!messages_recipient_id_fkey(*)
-      `)
-      .or(`and(sender_id.eq.${req.user.id},recipient_id.eq.${req.params.userId}),and(sender_id.eq.${req.params.userId},recipient_id.eq.${req.user.id})`)
-      .order('created_at', { ascending: true });
+    const message = await Message.findById(req.params.id)
+      .populate('senderId', 'name email')
+      .populate('recipientId', 'name email');
 
-    if (error) {
-      return res.status(500).json({
+    if (!message) {
+      return res.status(404).json({
         success: false,
-        error: 'Error fetching conversation',
+        error: 'Message not found',
       });
+    }
+
+    // Check if user has permission to view this message
+    if (message.senderId._id.toString() !== req.user.id && 
+        message.recipientId._id.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Insufficient permissions to view this message',
+      });
+    }
+
+    // Mark as read if recipient is viewing
+    if (message.recipientId._id.toString() === req.user.id && !message.isRead) {
+      message.isRead = true;
+      message.readAt = new Date();
+      await message.save();
     }
 
     res.json({
       success: true,
-      data: messages,
+      data: message,
     });
   } catch (error) {
-    console.error('Get conversation error:', error);
+    console.error('Get message error:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error fetching conversation',
+      error: 'Server error fetching message',
     });
   }
 });
@@ -80,9 +85,10 @@ router.get('/conversation/:userId', protect, async (req, res) => {
 // @access  Private
 router.post('/', [
   protect,
-  body('recipient_id').isUUID(),
-  body('subject').trim().notEmpty(),
-  body('content').trim().notEmpty(),
+  body('recipientId').notEmpty().withMessage('Recipient ID is required'),
+  body('subject').notEmpty().withMessage('Subject is required'),
+  body('content').notEmpty().withMessage('Content is required'),
+  body('type').optional().isIn(['general', 'academic', 'administrative', 'urgent']).withMessage('Invalid message type'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -94,28 +100,30 @@ router.post('/', [
       });
     }
 
-    const { data: message, error } = await supabase
-      .from('messages')
-      .insert([{
-        sender_id: req.user.id,
-        recipient_id: req.body.recipient_id,
-        subject: req.body.subject,
-        content: req.body.content,
-        status: 'unread',
-      }])
-      .select(`
-        *,
-        sender:profiles!messages_sender_id_fkey(*),
-        recipient:profiles!messages_recipient_id_fkey(*)
-      `)
-      .single();
+    const { recipientId, subject, content, type = 'general' } = req.body;
 
-    if (error) {
-      return res.status(400).json({
+    // Check if recipient exists
+    const recipient = await User.findById(recipientId);
+    if (!recipient) {
+      return res.status(404).json({
         success: false,
-        error: error.message,
+        error: 'Recipient not found',
       });
     }
+
+    const message = new Message({
+      senderId: req.user.id,
+      recipientId,
+      subject,
+      content,
+      type,
+    });
+
+    await message.save();
+
+    // Populate the response
+    await message.populate('senderId', 'name email');
+    await message.populate('recipientId', 'name email');
 
     res.status(201).json({
       success: true,
@@ -136,20 +144,21 @@ router.post('/', [
 // @access  Private
 router.patch('/:id/read', protect, async (req, res) => {
   try {
-    const { data: message, error } = await supabase
-      .from('messages')
-      .update({ status: 'read' })
-      .eq('id', req.params.id)
-      .eq('recipient_id', req.user.id)
-      .select()
-      .single();
+    const message = await Message.findOne({ 
+      _id: req.params.id, 
+      recipientId: req.user.id 
+    });
 
-    if (error || !message) {
+    if (!message) {
       return res.status(404).json({
         success: false,
-        error: 'Message not found',
+        error: 'Message not found or you do not have permission to mark it as read',
       });
     }
+
+    message.isRead = true;
+    message.readAt = new Date();
+    await message.save();
 
     res.json({
       success: true,
@@ -157,7 +166,7 @@ router.patch('/:id/read', protect, async (req, res) => {
       data: message,
     });
   } catch (error) {
-    console.error('Mark message read error:', error);
+    console.error('Mark message as read error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error marking message as read',
@@ -170,18 +179,19 @@ router.patch('/:id/read', protect, async (req, res) => {
 // @access  Private
 router.delete('/:id', protect, async (req, res) => {
   try {
-    const { error } = await supabase
-      .from('messages')
-      .delete()
-      .eq('id', req.params.id)
-      .or(`sender_id.eq.${req.user.id},recipient_id.eq.${req.user.id}`);
+    const message = await Message.findOne({ 
+      _id: req.params.id, 
+      $or: [{ senderId: req.user.id }, { recipientId: req.user.id }] 
+    });
 
-    if (error) {
-      return res.status(400).json({
+    if (!message) {
+      return res.status(404).json({
         success: false,
-        error: error.message,
+        error: 'Message not found or you do not have permission to delete it',
       });
     }
+
+    await Message.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
@@ -197,26 +207,18 @@ router.delete('/:id', protect, async (req, res) => {
 });
 
 // @desc    Get unread message count
-// @route   GET /api/messages/unread-count
+// @route   GET /api/messages/unread/count
 // @access  Private
-router.get('/unread-count', protect, async (req, res) => {
+router.get('/unread/count', protect, async (req, res) => {
   try {
-    const { count, error } = await supabase
-      .from('messages')
-      .select('*', { count: 'exact', head: true })
-      .eq('recipient_id', req.user.id)
-      .eq('status', 'unread');
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: 'Error fetching unread count',
-      });
-    }
+    const count = await Message.countDocuments({ 
+      recipientId: req.user.id, 
+      isRead: false 
+    });
 
     res.json({
       success: true,
-      data: { unreadCount: count || 0 },
+      data: { count },
     });
   } catch (error) {
     console.error('Get unread count error:', error);
@@ -227,4 +229,4 @@ router.get('/unread-count', protect, async (req, res) => {
   }
 });
 
-export default router; 
+export default router;

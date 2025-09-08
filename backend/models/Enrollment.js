@@ -17,19 +17,63 @@ const enrollmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['enrolled', 'dropped', 'completed'],
-    default: 'enrolled',
+    enum: ['pending', 'enrolled', 'dropped', 'completed', 'suspended'],
+    default: 'pending',
   },
   grade: {
     type: String,
     trim: true,
   },
+  semester: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  year: {
+    type: Number,
+    required: true,
+    min: 2020,
+    max: 2030,
+  },
+  enrolledBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  approvalDate: {
+    type: Date,
+  },
+  dropDate: {
+    type: Date,
+  },
+  dropReason: {
+    type: String,
+    trim: true,
+  },
+  notes: {
+    type: String,
+    trim: true,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 }, {
   timestamps: true,
 });
 
-// Ensure unique enrollment per student per course
+// Indexes for efficient queries
 enrollmentSchema.index({ studentId: 1, courseId: 1 }, { unique: true });
+enrollmentSchema.index({ courseId: 1, status: 1 });
+enrollmentSchema.index({ studentId: 1, status: 1 });
+enrollmentSchema.index({ semester: 1, year: 1 });
+enrollmentSchema.index({ enrolledBy: 1 });
+enrollmentSchema.index({ approvedBy: 1 });
+enrollmentSchema.index({ isActive: 1 });
 
 const Enrollment = mongoose.model('Enrollment', enrollmentSchema);
 

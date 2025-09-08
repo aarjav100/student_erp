@@ -3,19 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Users, 
-  UserCheck, 
-  UserX, 
-  Clock, 
-  CheckCircle, 
+import {
+  Users,
+  UserCheck,
+  UserX,
+  Clock,
+  CheckCircle,
   XCircle,
   BarChart3,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  GraduationCap,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import CourseManagement from '@/components/Admin/CourseManagement';
+import EnrollmentManagement from '@/components/Admin/EnrollmentManagement';
+import AttendanceManagement from '@/components/Admin/AttendanceManagement';
 
 interface User {
   _id: string;
@@ -39,12 +45,14 @@ interface Stats {
 }
 
 const AdminPanel = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [approvedStudents, setApprovedStudents] = useState<any[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
   // Check if user is admin
   if (user?.role !== 'admin') {
@@ -68,7 +76,7 @@ const AdminPanel = () => {
       setLoading(true);
       const response = await fetch('/api/admin/users', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       const data = await response.json();
@@ -86,7 +94,7 @@ const AdminPanel = () => {
     try {
       const response = await fetch('/api/admin/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       const data = await response.json();
@@ -98,12 +106,30 @@ const AdminPanel = () => {
     }
   };
 
+  const fetchApprovedStudents = async () => {
+    try {
+      setLoadingStudents(true);
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${apiBase}/admin/users?status=approved&role=student&limit=100`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setApprovedStudents(data.data.users || []);
+      }
+    } catch (e) {
+      console.error('Failed to load approved students', e);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
   const approveUser = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/approve`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -111,6 +137,7 @@ const AdminPanel = () => {
       if (data.success) {
         fetchUsers();
         fetchStats();
+        fetchApprovedStudents();
       }
     } catch (error) {
       console.error('Error approving user:', error);
@@ -122,7 +149,7 @@ const AdminPanel = () => {
       const response = await fetch(`/api/admin/users/${userId}/reject`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -130,6 +157,7 @@ const AdminPanel = () => {
       if (data.success) {
         fetchUsers();
         fetchStats();
+        fetchApprovedStudents();
       }
     } catch (error) {
       console.error('Error rejecting user:', error);
@@ -139,6 +167,7 @@ const AdminPanel = () => {
   useEffect(() => {
     fetchUsers();
     fetchStats();
+    fetchApprovedStudents();
   }, []);
 
   const filteredUsers = users.filter(user => {
@@ -175,7 +204,7 @@ const AdminPanel = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Panel</h1>
-        <p className="text-gray-600">Manage user accounts and system settings</p>
+        <p className="text-gray-600">Manage users, courses, and system settings</p>
       </div>
 
       {/* Stats Cards */}
@@ -231,8 +260,62 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* User Management */}
-      <Card>
+      {/* Approved Students List */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-3">Approved Students</h2>
+        <div className="rounded-md border">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-3 py-2 text-left">Name</th>
+                <th className="px-3 py-2 text-left">Email</th>
+                <th className="px-3 py-2 text-left">Student ID</th>
+                <th className="px-3 py-2 text-left">Approved At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingStudents ? (
+                <tr><td className="px-3 py-3" colSpan={4}>Loading...</td></tr>
+              ) : approvedStudents.length === 0 ? (
+                <tr><td className="px-3 py-3" colSpan={4}>No approved students yet.</td></tr>
+              ) : (
+                approvedStudents.map((s) => (
+                  <tr key={s._id} className="border-t">
+                    <td className="px-3 py-2">{s.name}</td>
+                    <td className="px-3 py-2">{s.email}</td>
+                    <td className="px-3 py-2">{s.studentId || '-'}</td>
+                    <td className="px-3 py-2">{s.approvedAt ? new Date(s.approvedAt).toLocaleDateString() : '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Admin Tabs */}
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            User Management
+          </TabsTrigger>
+          <TabsTrigger value="courses" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Course Management
+          </TabsTrigger>
+          <TabsTrigger value="enrollments" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Enrollment Management
+          </TabsTrigger>
+          <TabsTrigger value="attendance" className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            Attendance Management
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="space-y-6">
+          <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -366,7 +449,21 @@ const AdminPanel = () => {
             )}
           </div>
         </CardContent>
-      </Card>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="courses" className="space-y-6">
+          <CourseManagement />
+        </TabsContent>
+
+        <TabsContent value="enrollments" className="space-y-6">
+          <EnrollmentManagement />
+        </TabsContent>
+
+        <TabsContent value="attendance" className="space-y-6">
+          <AttendanceManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
